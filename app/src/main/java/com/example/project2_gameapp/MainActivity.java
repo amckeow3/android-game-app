@@ -14,7 +14,10 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
 
     @Override
     public void login() {
-        //TODO: go to main app page after login
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.rootview, new MainPageFragment(), "main-page-fragment")
+                .addToBackStack(null)
+                .commit();
     }
 
     @Override
