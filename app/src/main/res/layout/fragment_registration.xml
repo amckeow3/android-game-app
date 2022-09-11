@@ -9,9 +9,11 @@
 
     <EditText
         android:id="@+id/editTextRegisterName"
-        android:layout_width="231dp"
-        android:layout_height="45dp"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="68dp"
+        android:layout_marginEnd="32dp"
         android:ems="10"
         android:hint="@string/name_placeholder_text"
         android:inputType="textPersonName"
@@ -21,33 +23,36 @@
 
     <EditText
         android:id="@+id/editTextRegisterEmail"
-        android:layout_width="231dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="25dp"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="28dp"
         android:ems="10"
         android:hint="@string/email_placeholder_text"
         android:inputType="textEmailAddress"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/editTextRegisterName"
+        app:layout_constraintStart_toStartOf="@+id/editTextRegisterName"
         app:layout_constraintTop_toBottomOf="@+id/editTextRegisterName" />
 
     <EditText
         android:id="@+id/editTextRegisterPassword"
-        android:layout_width="232dp"
-        android:layout_height="46dp"
-        android:layout_marginTop="25dp"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="28dp"
         android:ems="10"
         android:hint="@string/password_placeholder_text"
         android:inputType="textPassword"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/editTextRegisterName"
+        app:layout_constraintHorizontal_bias="0.782"
+        app:layout_constraintStart_toStartOf="@+id/editTextRegisterName"
         app:layout_constraintTop_toBottomOf="@+id/editTextRegisterEmail" />
 
     <Button
         android:id="@+id/buttonRegister"
-        android:layout_width="191dp"
+        android:layout_width="0dp"
         android:layout_height="49dp"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="32dp"
+        android:layout_marginEnd="32dp"
         android:text="@string/register_button_text"
         app:cornerRadius="20dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -57,13 +62,10 @@
     <Button
         android:id="@+id/buttonCancelToLogin"
         android:layout_width="93dp"
-        android:layout_height="42dp"
-        android:layout_marginTop="16dp"
+        android:layout_height="48dp"
         android:background="@android:color/transparent"
         android:text="@string/cancel_button_text"
         android:textColor="@android:color/black"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.654"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/buttonRegister"
         app:layout_constraintTop_toBottomOf="@+id/buttonRegister" />
 </androidx.constraintlayout.widget.ConstraintLayout>
