@@ -31,7 +31,6 @@ import java.util.HashMap;
 
 
 public class RegistrationFragment extends Fragment {
-
     private static final String TAG = "registration fragment";
     RegistrationFragmentListener mListener;
     FragmentRegistrationBinding binding;
@@ -99,7 +98,7 @@ public class RegistrationFragment extends Fragment {
                                                     }
                                                 });
 
-                                        mListener.login();
+                                        mListener.goToMainPage();
                                     } else {
                                         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                                         builder.setTitle("Registration  Error")
@@ -169,7 +168,7 @@ public class RegistrationFragment extends Fragment {
     }
 
     interface RegistrationFragmentListener {
-        void login();
+        void goToMainPage();
         void backToLogin();
     }
 }
