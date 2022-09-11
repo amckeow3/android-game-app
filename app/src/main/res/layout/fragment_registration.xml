@@ -8,14 +8,14 @@
     tools:context=".RegistrationFragment">
 
     <EditText
-        android:id="@+id/editTextRegisterName"
-        android:layout_width="0dp"
+        android:id="@+id/editTextRegisterFirstName"
+        android:layout_width="347dp"
         android:layout_height="48dp"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="68dp"
+        android:layout_marginTop="60dp"
         android:layout_marginEnd="32dp"
         android:ems="10"
-        android:hint="@string/name_placeholder_text"
+        android:hint="@string/first_name_placeholder_text"
         android:inputType="textPersonName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -29,9 +29,19 @@
         android:ems="10"
         android:hint="@string/email_placeholder_text"
         android:inputType="textEmailAddress"
-        app:layout_constraintEnd_toEndOf="@+id/editTextRegisterName"
-        app:layout_constraintStart_toStartOf="@+id/editTextRegisterName"
-        app:layout_constraintTop_toBottomOf="@+id/editTextRegisterName" />
+        app:layout_constraintEnd_toEndOf="@+id/editTextRegisterFirstName"
+        app:layout_constraintStart_toStartOf="@+id/editTextRegisterFirstName"
+        app:layout_constraintTop_toBottomOf="@+id/editTextRegisterLastName" />
+
+    <EditText
+        android:id="@+id/editTextRegisterLastName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:hint="@string/last_name_text"
+        app:layout_constraintEnd_toEndOf="@+id/editTextRegisterFirstName"
+        app:layout_constraintStart_toStartOf="@+id/editTextRegisterFirstName"
+        app:layout_constraintTop_toBottomOf="@+id/editTextRegisterFirstName" />
 
     <EditText
         android:id="@+id/editTextRegisterPassword"
@@ -41,9 +51,9 @@
         android:ems="10"
         android:hint="@string/password_placeholder_text"
         android:inputType="textPassword"
-        app:layout_constraintEnd_toEndOf="@+id/editTextRegisterName"
+        app:layout_constraintEnd_toEndOf="@+id/editTextRegisterFirstName"
         app:layout_constraintHorizontal_bias="0.782"
-        app:layout_constraintStart_toStartOf="@+id/editTextRegisterName"
+        app:layout_constraintStart_toStartOf="@+id/editTextRegisterFirstName"
         app:layout_constraintTop_toBottomOf="@+id/editTextRegisterEmail" />
 
     <Button
@@ -55,8 +65,8 @@
         android:layout_marginEnd="32dp"
         android:backgroundTint="@color/primary"
         android:text="@string/register_button_text"
-        app:cornerRadius="20dp"
         android:textAllCaps="false"
+        app:cornerRadius="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextRegisterPassword" />

@@ -3,9 +3,16 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/adria/AndroidStudioProjects/Project2_GameApp/app/src/main/res/drawable/button_border.xml" value="0.1" />
         <entry key="..\:/Users/adria/AndroidStudioProjects/Project2_GameApp/app/src/main/res/layout/activity_main.xml" value="0.10989583333333333" />
+        <entry key="..\:/Users/adria/AndroidStudioProjects/Project2_GameApp/app/src/main/res/layout/chatroom_line_item.xml" value="0.25" />
+        <entry key="..\:/Users/adria/AndroidStudioProjects/Project2_GameApp/app/src/main/res/layout/fragment_chatrooms.xml" value="0.25" />
         <entry key="..\:/Users/adria/AndroidStudioProjects/Project2_GameApp/app/src/main/res/layout/fragment_login.xml" value="0.25" />
+        <entry key="..\:/Users/adria/AndroidStudioProjects/Project2_GameApp/app/src/main/res/layout/fragment_main_page.xml" value="0.128" />
         <entry key="..\:/Users/adria/AndroidStudioProjects/Project2_GameApp/app/src/main/res/layout/fragment_registration.xml" value="0.25" />
+        <entry key="..\:/Users/adria/AndroidStudioProjects/Project2_GameApp/app/src/main/res/layout/nav_header.xml" value="0.25" />
+        <entry key="..\:/Users/adria/AndroidStudioProjects/Project2_GameApp/app/src/main/res/layout/toolbar.xml" value="0.25" />
+        <entry key="..\:/Users/adria/AndroidStudioProjects/Project2_GameApp/app/src/main/res/menu/navigation_menu.xml" value="0.25" />
       </map>
     </option>
   </component>

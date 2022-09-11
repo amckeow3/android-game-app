@@ -1,21 +1,43 @@
 package com.example.project2_gameapp;
 
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
-
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import android.os.Bundle;
+import android.view.MenuItem;
 
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-public class MainActivity extends AppCompatActivity implements LoginFragment.LoginFragmentListener, RegistrationFragment.RegistrationFragmentListener, MainPageFragment.MainPageFragmentListener {
+public class MainActivity extends AppCompatActivity implements LoginFragment.LoginFragmentListener, RegistrationFragment.RegistrationFragmentListener, ChatroomsFragment.ChatroomsFragmentListener,
+        NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = "main activity";
     private FirebaseAuth mAuth;
+    private DrawerLayout drawerLayout;
+    private Toolbar toolbar;
+    private NavigationView navigationView;
+    private ActionBarDrawerToggle toggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        drawerLayout = findViewById(R.id.navDrawerLayout);
+        navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar,
+                R.string.drawer_open, R.string.drawer_close);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
 
         mAuth = FirebaseAuth.getInstance();
         FirebaseUser user = mAuth.getCurrentUser();
@@ -23,23 +45,52 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
         if (user == null) {
             goToLogin();
         } else {
-            goToMainPage();
+            goToChatrooms();
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.nav_chatrooms:
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.rootView, new ChatroomsFragment(), "chatrooms-fragment")
+                        .commit();
+                break;
+            case R.id.nav_logout:
+                FirebaseAuth.getInstance().signOut();
+                goToLogin();
+                break;
+
+        }
+        drawerLayout.closeDrawer(GravityCompat.START);
+        return true;
     }
 
     @Override
     public void goToLogin() {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.rootview, new LoginFragment(), "login-fragment")
+                .replace(R.id.rootView, new LoginFragment(), "login-fragment")
                 .commit();
     }
 
+    @Override
+    public void createNewChatroom() {
+
+    }
 
     @Override
-    public void goToMainPage() {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.rootview, new MainPageFragment(), "main-page-fragment")
-                .commit();
+    public void openSelectedChatroom(Chatroom chatroom) {
+
     }
 
     @Override
@@ -48,9 +99,16 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
     }
 
     @Override
+    public void goToChatrooms() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.rootView, new ChatroomsFragment(), "chatrooms-fragment")
+                .commit();
+    }
+
+    @Override
     public void goToRegistration() {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.rootview, new RegistrationFragment(), "registration-fragment")
+                .replace(R.id.rootView, new RegistrationFragment(), "registration-fragment")
                 .addToBackStack(null)
                 .commit();
     }

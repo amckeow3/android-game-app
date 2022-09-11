@@ -49,8 +49,7 @@ public class RegistrationFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentRegistrationBinding.inflate(inflater, container, false);
-        // Inflate the layout for this fragment
-        //return inflater.inflate(R.layout.fragment_registration, container, false);
+        getActivity().findViewById(R.id.toolbar).setVisibility(View.GONE);
         return binding.getRoot();
     }
 
@@ -62,16 +61,19 @@ public class RegistrationFragment extends Fragment {
         binding.buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String name = binding.editTextRegisterName.getText().toString();
+                String firstName = binding.editTextRegisterFirstName.getText().toString();
+                String lastName = binding.editTextRegisterLastName.getText().toString();
                 String email = binding.editTextRegisterEmail.getText().toString();
                 String password = binding.editTextRegisterPassword.getText().toString();
 
-                if(name.isEmpty()){
-
-                } else if (email.isEmpty()){
-
-                } else if (password.isEmpty()){
-
+                if (firstName.trim().isEmpty()){
+                    Toast.makeText(getActivity().getApplicationContext(), "First name is required", Toast.LENGTH_SHORT).show();
+                } else if (lastName.trim().isEmpty()) {
+                    Toast.makeText(getActivity().getApplicationContext(), "Last name is required", Toast.LENGTH_SHORT).show();
+                } else if (email.trim().isEmpty()) {
+                    Toast.makeText(getActivity().getApplicationContext(), "Email is required", Toast.LENGTH_SHORT).show();
+                } else if (password.trim().isEmpty()) {
+                    Toast.makeText(getActivity().getApplicationContext(), "Password is required", Toast.LENGTH_SHORT).show();
                 } else {
                     mAuth.createUserWithEmailAndPassword(email,password)
                             .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -83,7 +85,7 @@ public class RegistrationFragment extends Fragment {
                                         Log.d(TAG, "onComplete: User " + user);
 
                                         UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                                .setDisplayName(name)
+                                                .setDisplayName(firstName + " " + lastName)
                                                 .build();
 
                                         user.updateProfile(profileUpdates)
@@ -98,7 +100,7 @@ public class RegistrationFragment extends Fragment {
                                                     }
                                                 });
 
-                                        mListener.goToMainPage();
+                                        mListener.goToChatrooms();
                                     } else {
                                         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                                         builder.setTitle("Registration  Error")
@@ -133,14 +135,16 @@ public class RegistrationFragment extends Fragment {
         FirebaseUser user = mAuth.getCurrentUser();
         String id = user.getUid();
         String email = user.getEmail();
-        String username = user.getDisplayName();
+        String firstName = binding.editTextRegisterFirstName.getText().toString();
+        String lastName = binding.editTextRegisterLastName.getText().toString();
 
 
         HashMap<String, Object> newUser = new HashMap<>();
 
         newUser.put("id", id);
         newUser.put("email", email);
-        newUser.put("username", username);
+        newUser.put("firstName", firstName);
+        newUser.put("lastName", lastName);
 
         db.collection("users")
                 .document(id)
@@ -168,7 +172,7 @@ public class RegistrationFragment extends Fragment {
     }
 
     interface RegistrationFragmentListener {
-        void goToMainPage();
+        void goToChatrooms();
         void backToLogin();
     }
 }

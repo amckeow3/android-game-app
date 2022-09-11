@@ -42,8 +42,9 @@ public class LoginFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_login, container, false);
+        binding = FragmentLoginBinding.inflate(inflater, container, false);
+        getActivity().findViewById(R.id.toolbar).setVisibility(View.GONE);
+        return binding.getRoot();
     }
 
     @Override
@@ -69,7 +70,7 @@ public class LoginFragment extends Fragment {
                                         Log.d(TAG, "onComplete: Logged In Successfully");
                                         FirebaseUser user = mAuth.getCurrentUser();
                                         Log.d(TAG, "onComplete: User " + user);
-                                        mListener.goToMainPage();
+                                        mListener.goToChatrooms();
                                     } else {
                                         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                                         builder.setTitle("Login Error")
@@ -104,7 +105,7 @@ public class LoginFragment extends Fragment {
     }
 
     public interface LoginFragmentListener {
-        void goToMainPage();
+        void goToChatrooms();
         void goToRegistration();
     }
 }
