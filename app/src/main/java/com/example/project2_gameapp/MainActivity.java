@@ -19,6 +19,9 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
 
     @Override
     public void goToRegistration() {
-        //TODO: go to main app page after registration
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.rootview, new RegistrationFragment(), "registration-fragment")
+                .addToBackStack(null)
+                .commit();
     }
 }
