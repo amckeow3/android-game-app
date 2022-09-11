@@ -13,8 +13,12 @@
     <string name="join_txt">Join</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
-    <string name="new_chatroom">New Chatroom</string>
-
+    <string name="new_chatroom">+ New Chatroom</string>
+    <string name="chatroom_name_txt">Chatroom name</string>
+    <string name="create_txt">Create</string>
+    <string name="leave_txt">Leave</string>
+    <string name="write_msg_txt">Write your message</string>
+    <string name="one_like_txt">1 Like | </string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

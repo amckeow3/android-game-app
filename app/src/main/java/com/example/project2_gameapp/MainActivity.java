@@ -13,7 +13,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity implements LoginFragment.LoginFragmentListener, RegistrationFragment.RegistrationFragmentListener, ChatroomsFragment.ChatroomsFragmentListener,
-        NavigationView.OnNavigationItemSelectedListener {
+        CreateChatroomFragment.CreateChatroomFragmentListener, ViewChatroomFragment.ViewChatroomFragmentListener, NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = "main activity";
     private FirebaseAuth mAuth;
@@ -85,12 +85,18 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
 
     @Override
     public void createNewChatroom() {
-
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.rootView, new CreateChatroomFragment(), "create-chatroom-fragment")
+                .addToBackStack(null)
+                .commit();
     }
 
     @Override
     public void openSelectedChatroom(Chatroom chatroom) {
-
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.rootView, ViewChatroomFragment.newInstance(chatroom), "view-chatroom-fragment")
+                .addToBackStack(null)
+                .commit();
     }
 
     @Override
@@ -111,5 +117,10 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
                 .replace(R.id.rootView, new RegistrationFragment(), "registration-fragment")
                 .addToBackStack(null)
                 .commit();
+    }
+
+    @Override
+    public void leaveChatroom() {
+        getSupportFragmentManager().popBackStack();
     }
 }

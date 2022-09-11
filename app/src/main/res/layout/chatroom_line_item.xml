@@ -43,7 +43,6 @@
                 android:backgroundTint="@color/primary"
                 android:text="@string/join_txt"
                 android:textColor="@color/white"
-                app:cornerRadius="20dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />

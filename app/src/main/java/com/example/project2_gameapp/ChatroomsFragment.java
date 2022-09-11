@@ -74,6 +74,7 @@ public class ChatroomsFragment extends Fragment {
                 });
     }
 
+
     private void getAllChatroomsData() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -105,6 +106,8 @@ public class ChatroomsFragment extends Fragment {
                     }
                 });
     }
+
+
 
     class ChatroomsListAdapter extends RecyclerView.Adapter<ChatroomsListAdapter.ChatroomsViewHolder> {
         ArrayList<Chatroom> mChatrooms;
@@ -180,7 +183,6 @@ public class ChatroomsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentChatroomsBinding.inflate(inflater, container, false);
-        getAllChatroomsData();
         setupUI();
         return binding.getRoot();
     }
