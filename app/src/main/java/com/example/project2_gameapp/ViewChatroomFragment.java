@@ -260,6 +260,8 @@ public class ViewChatroomFragment extends Fragment {
                         membersAdapter.notifyDataSetChanged();
                     }
                 });
+
+        Log.d("qq", "getChatroomMembers: " + membersList);
     }
 
     void getMessages() {
@@ -457,7 +459,28 @@ public class ViewChatroomFragment extends Fragment {
         public void onBindViewHolder(@NonNull ChatViewersRecyclerViewAdapter.ChatViewersViewHolder holder, int position) {
             if (membersArrayList.size() != 0) {
                 User viewer = membersArrayList.get(position);
-                holder.setupUI(viewer);
+                //holder.setupUI(viewer);
+                holder.name.setText(viewer.firstName);
+
+                FirebaseStorage storage = FirebaseStorage.getInstance();
+                StorageReference profilePic = storage.getReference().child("images/").child(viewer.getId());
+                if (profilePic != null) {
+                    profilePic.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Uri> task) {
+                            if (task.isSuccessful()) {
+                                Glide.with(getActivity())
+                                        .load(task.getResult())
+                                        .into(holder.profile);
+                            }
+                        }
+                    });
+                } else {
+                    holder.profile.setImageResource(R.drawable.ic_person);
+                }
+
+
+
             }
         }
 
@@ -475,6 +498,17 @@ public class ViewChatroomFragment extends Fragment {
             public ChatViewersViewHolder(@NonNull ViewerLineItemBinding binding) {
                 super(binding.getRoot());
                 mBinding = binding;
+                name = mBinding.textViewerName;
+                profile = mBinding.imageViewAcctProfilePic;
+
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        User selectedUser = mViewer;
+                        Log.d(TAG, "onClick: Selected User " + selectedUser);
+                        mListener.selectUserForGame(selectedUser);
+                    }
+                });
             }
 
             public void setupUI(User viewer) {
@@ -501,14 +535,6 @@ public class ViewChatroomFragment extends Fragment {
                     profile.setImageResource(R.drawable.ic_person);
                 }
 
-                itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    User selectedUser = mViewer;
-                    Log.d(TAG, "onClick: Selected User " + selectedUser);
-                    mListener.selectUserForGame(selectedUser);
-                }
-            });
             }
         }
     }
