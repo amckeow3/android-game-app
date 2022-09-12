@@ -4,20 +4,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Game {
-    String gameTitle, gameID;
-    User player1;
-    User player2;
+    String gameTitle, gameID, currentTurn, player1, player2;
     Card topCard;
-    ArrayList<Card> player1Hand;
-    ArrayList<Card> player2Hand;
+    ArrayList<Card> player1Hand, player2Hand;
     HashMap<String, Object> moves;
-    String currentTurn;
     boolean gameFinished;
 
     public Game() {
     }
 
-    public Game(String gameTitle, String gameID, User player1, User player2, Card topCard, ArrayList<Card> player1Hand,
+    public Game(String gameTitle, String gameID, String player1, String player2, Card topCard, ArrayList<Card> player1Hand,
                 ArrayList<Card> player2Hand, HashMap<String, Object> moves, String currentTurn, boolean gameFinished) {
         this.gameTitle = gameTitle;
         this.gameID = gameID;
@@ -47,19 +43,19 @@ public class Game {
         this.gameTitle = gameTitle;
     }
 
-    public User getPlayer1() {
+    public String getPlayer1() {
         return player1;
     }
 
-    public void setPlayer1(User player1) {
+    public void setPlayer1(String player1) {
         this.player1 = player1;
     }
 
-    public User getPlayer2() {
+    public String getPlayer2() {
         return player2;
     }
 
-    public void setPlayer2(User player2) {
+    public void setPlayer2(String player2) {
         this.player2 = player2;
     }
 

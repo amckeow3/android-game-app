@@ -1,14 +1,17 @@
 package com.example.project2_gameapp;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +24,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -29,6 +33,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -126,7 +131,37 @@ public class GameLobbyFragment extends Fragment {
         view.findViewById(R.id.buttonMakeGame).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                DocumentReference docRef = db.collection("games").document();
+                HashMap<String, Object> newGame = new HashMap<>();
+                newGame.put("gameTitle", user.getDisplayName() + "'s Game");
+                newGame.put("gameID", docRef.getId());
+                newGame.put("player1", user.getUid());
+                newGame.put("player2", "");
+                newGame.put("topCard", new Card());
+                newGame.put("moves", new HashMap<String, Object>());
+                newGame.put("player1Hand", new ArrayList<Card>());
+                newGame.put("player2Hand", new ArrayList<Card>());
+                newGame.put("gameFinished", false);
 
+                docRef.set(newGame).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()) {
+                            Log.d("qq", "game created");
+                        } else {
+                            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                            b.setTitle("Error creating game")
+                                    .setMessage(task.getException().getMessage())
+                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+
+                                        }
+                                    });
+                            b.create().show();
+                        }
+                    }
+                });
             }
         });
     }
