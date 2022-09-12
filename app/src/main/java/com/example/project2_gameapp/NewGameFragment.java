@@ -18,25 +18,29 @@ public class NewGameFragment extends Fragment {
     FragmentNewGameBinding binding;
     NewGameFragmentListener mListener;
 
-    private static final String ARG_PARAM1 = "param1";
+    private static final String ARG_PARAM_USER = "param1";
     private static final String ARG_PARAM2 = "param2";
 
     private String mParam1;
     private String mParam2;
 
+    User opponent;
+    String opponentId;
+    String opponentName;
+
     private void setupUI() {
         getActivity().findViewById(R.id.toolbar).setVisibility(View.INVISIBLE);
+        binding.textViewRequestGame.setText("Request new UNO game with " + opponentName + "?");
     }
 
     public NewGameFragment() {
         // Required empty public constructor
     }
 
-    public static NewGameFragment newInstance(String param1, String param2) {
+    public static NewGameFragment newInstance(User user) {
         NewGameFragment fragment = new NewGameFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putSerializable(ARG_PARAM_USER, user);
         fragment.setArguments(args);
         return fragment;
     }
@@ -45,8 +49,9 @@ public class NewGameFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            opponent = (User) getArguments().getSerializable(ARG_PARAM_USER);
+            opponentId = opponent.getId();
+            opponentName = opponent.getFirstName();
         }
     }
 

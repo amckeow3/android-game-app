@@ -1,8 +1,9 @@
 package com.example.project2_gameapp;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class User {
+public class User implements Serializable {
     String id;
     String firstName;
     String lastName;

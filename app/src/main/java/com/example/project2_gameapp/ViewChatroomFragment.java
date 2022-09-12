@@ -22,7 +22,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.project2_gameapp.databinding.ChatroomLineItemBinding;
 import com.example.project2_gameapp.databinding.FragmentViewChatroomBinding;
+import com.example.project2_gameapp.databinding.ViewerLineItemBinding;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -48,7 +50,7 @@ import java.util.HashMap;
 
 public class ViewChatroomFragment extends Fragment {
     private static final String TAG = "view chatroom frag";
-    ViewChatroomFragment.ViewChatroomFragmentListener mListener;
+    ViewChatroomFragmentListener mListener;
     FragmentViewChatroomBinding binding;
     private FirebaseAuth mAuth;
     FirebaseFirestore db;
@@ -237,12 +239,6 @@ public class ViewChatroomFragment extends Fragment {
             }
     });
 
-    binding.cardViewUnoGame.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            mListener.newGame();
-        }
-    });
     }
 
     void getChatroomMembers() {
@@ -288,7 +284,7 @@ public class ViewChatroomFragment extends Fragment {
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        mListener = (ViewChatroomFragment.ViewChatroomFragmentListener) context;
+        mListener = (ViewChatroomFragmentListener) context;
     }
 
     class ViewChatroomRecyclerViewAdapter extends RecyclerView.Adapter<ViewChatroomRecyclerViewAdapter.ViewChatroomViewHolder> {
@@ -453,34 +449,15 @@ public class ViewChatroomFragment extends Fragment {
         @NonNull
         @Override
         public ChatViewersRecyclerViewAdapter.ChatViewersViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.viewer_line_item, parent, false);
-            ChatViewersRecyclerViewAdapter.ChatViewersViewHolder viewersViewHolder = new ChatViewersRecyclerViewAdapter.ChatViewersViewHolder(view);
-
-            return viewersViewHolder;
+           ViewerLineItemBinding binding = ViewerLineItemBinding.inflate(getLayoutInflater(), parent, false);
+            return new ChatViewersRecyclerViewAdapter.ChatViewersViewHolder(binding);
         }
 
         @Override
         public void onBindViewHolder(@NonNull ChatViewersRecyclerViewAdapter.ChatViewersViewHolder holder, int position) {
             if (membersArrayList.size() != 0) {
                 User viewer = membersArrayList.get(position);
-                holder.name.setText(viewer.firstName);
-
-                FirebaseStorage storage = FirebaseStorage.getInstance();
-               // StorageReference profilePic = storage.getReference().child("images/").child(viewer.getId());
-                /*if (profilePic != null) {
-                    profilePic.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Uri> task) {
-                            if (task.isSuccessful()) {
-                                Glide.with(getActivity())
-                                        .load(task.getResult())
-                                        .into(holder.profile);
-                            }
-                        }
-                    });
-                } else {
-                    holder.profile.setImageResource(R.drawable.ic_person);
-                }*/
+                holder.setupUI(viewer);
             }
         }
 
@@ -492,19 +469,52 @@ public class ViewChatroomFragment extends Fragment {
         class ChatViewersViewHolder extends RecyclerView.ViewHolder {
             TextView name;
             ImageView profile;
+            User mViewer;
+            ViewerLineItemBinding mBinding;
 
-            public ChatViewersViewHolder(@NonNull View itemView) {
-                super(itemView);
-                name = itemView.findViewById(R.id.textViewerName);
-                profile = itemView.findViewById(R.id.imageViewAcctProfilePic);
+            public ChatViewersViewHolder(@NonNull ViewerLineItemBinding binding) {
+                super(binding.getRoot());
+                mBinding = binding;
+            }
 
+            public void setupUI(User viewer) {
+                mViewer = viewer;
+                name = mBinding.textViewerName;
+                profile = mBinding.imageViewAcctProfilePic;
 
+                name.setText(viewer.firstName);
+
+                FirebaseStorage storage = FirebaseStorage.getInstance();
+                StorageReference profilePic = storage.getReference().child("images/").child(viewer.getId());
+                if (profilePic != null) {
+                    profilePic.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Uri> task) {
+                            if (task.isSuccessful()) {
+                                Glide.with(getActivity())
+                                        .load(task.getResult())
+                                        .into(profile);
+                            }
+                        }
+                    });
+                } else {
+                    profile.setImageResource(R.drawable.ic_person);
+                }
+
+                itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    User selectedUser = mViewer;
+                    Log.d(TAG, "onClick: Selected User " + selectedUser);
+                    mListener.selectUserForGame(selectedUser);
+                }
+            });
             }
         }
     }
 
     public interface ViewChatroomFragmentListener {
         void leaveChatroom();
-        void newGame();
+        void selectUserForGame(User user);
     }
 }

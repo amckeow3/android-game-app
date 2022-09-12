@@ -125,9 +125,9 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
     }
 
     @Override
-    public void newGame() {
+    public void selectUserForGame(User user) {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.rootView, new NewGameFragment(), "new-game-fragment")
+                .replace(R.id.rootView, NewGameFragment.newInstance(user), "new-game-fragment")
                 .addToBackStack(null)
                 .commit();
     }
