@@ -95,6 +95,7 @@ public class ViewChatroomFragment extends Fragment {
                              Bundle savedInstanceState) {
         binding = FragmentViewChatroomBinding.inflate(inflater, container, false);
         getActivity().setTitle(chatroomName);
+        getActivity().findViewById(R.id.toolbar).findViewById(R.id.buttonLeaveChatroom).setVisibility(View.VISIBLE);
         return binding.getRoot();
     }
 
@@ -213,7 +214,7 @@ public class ViewChatroomFragment extends Fragment {
         });
 
         //leaveButton = view.findViewById(R.id.buttonLeave);
-        binding.buttonLeave.setOnClickListener(new View.OnClickListener() {
+        getActivity().findViewById(R.id.toolbar).findViewById(R.id.buttonLeaveChatroom).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Query query = db.collection("chatrooms").document(chatroomId)

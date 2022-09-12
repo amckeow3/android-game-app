@@ -19,8 +19,8 @@
 
             <ImageView
                 android:id="@+id/imageViewLikeButton"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="16dp"
                 android:clickable="true"
@@ -30,8 +30,8 @@
 
             <ImageView
                 android:id="@+id/imageViewDeleteButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="12dp"
                 android:clickable="false"
@@ -50,6 +50,7 @@
                 android:layout_marginTop="16dp"
                 android:text="TextView"
                 android:textStyle="bold"
+                android:textSize="14sp"
                 app:layout_constraintStart_toEndOf="@+id/cardViewAcctProfilePic"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -61,7 +62,7 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
                 android:text="TextView"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 app:layout_constraintEnd_toStartOf="@+id/imageViewLikeButton"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toEndOf="@+id/cardViewAcctProfilePic"
@@ -75,7 +76,7 @@
                 android:layout_marginTop="13dp"
                 android:layout_marginBottom="17dp"
                 android:text="TextView"
-                android:textSize="10sp"
+                android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/cardViewAcctProfilePic"
                 app:layout_constraintTop_toBottomOf="@+id/textViewChatMessage"
@@ -95,8 +96,8 @@
 
                 <androidx.constraintlayout.utils.widget.ImageFilterView
                     android:id="@+id/imageViewAcctProfilePic"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
                     android:src="@drawable/ic_person"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -111,7 +112,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginBottom="16dp"
                 android:text="TextView"
-                android:textSize="10sp"
+                android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/imageViewDeleteButton"
                 app:layout_constraintHorizontal_bias="0.005"

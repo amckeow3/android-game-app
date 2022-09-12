@@ -31,8 +31,8 @@
 
                 <androidx.constraintlayout.utils.widget.ImageFilterView
                     android:id="@+id/imageViewAcctProfilePic"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
                     android:src="@drawable/ic_person"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"

@@ -44,6 +44,7 @@ public class ChatroomsFragment extends Fragment {
     private void setupUI() {
         getActivity().findViewById(R.id.toolbar).setVisibility(View.VISIBLE);
         getActivity().setTitle("Chatrooms");
+        getActivity().findViewById(R.id.toolbar).findViewById(R.id.buttonLeaveChatroom).setVisibility(View.INVISIBLE);
         getUserAccountInfo();
 
         getAllChatroomsData();
@@ -156,7 +157,7 @@ public class ChatroomsFragment extends Fragment {
                 FirebaseUser user = mAuth.getCurrentUser();
                 String id = user.getUid();
 
-                mBinding.buttonJoin.setOnClickListener(new View.OnClickListener() {
+                itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         Chatroom selectedChatroom = mChatroom;
