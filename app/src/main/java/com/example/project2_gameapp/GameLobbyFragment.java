@@ -6,6 +6,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
@@ -14,7 +15,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,16 +77,61 @@ public class GameLobbyFragment extends Fragment {
 
     ArrayList<Game> games;
     RecyclerView gameList;
-
+    LinearLayoutManager linearLayoutManager;
+    //adapter
     Button makeGame;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        getActivity().setTitle("Game Lobby");//TODO: make string resource for title
+        getActivity().setTitle(R.string.game_lobby_fragment);
 
         games = new ArrayList<>();
-
+        gameList = view.findViewById(R.id.gameList);
     }
 
+    class GameLobbyRecyclerViewAdapter extends RecyclerView.Adapter<GameLobbyRecyclerViewAdapter.GameLobbyViewHolder> {
+        ArrayList<Game> gamesArrayList;
+
+        public GameLobbyRecyclerViewAdapter (ArrayList<Game> games) {
+            this.gamesArrayList = games;
+        }
+
+        @NonNull
+        @Override
+        public GameLobbyRecyclerViewAdapter.GameLobbyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.game_line_item, parent, false);
+            GameLobbyViewHolder gameLobbyViewHolder = new GameLobbyRecyclerViewAdapter.GameLobbyViewHolder(view);
+            return gameLobbyViewHolder;
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull GameLobbyRecyclerViewAdapter.GameLobbyViewHolder holder, int position) {
+            if(gamesArrayList.size() != 0) {
+                Game game = gamesArrayList.get(position);
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            return 0;
+        }
+
+        class GameLobbyViewHolder extends RecyclerView.ViewHolder {
+            TextView gameTitle;
+
+            public GameLobbyViewHolder(@NonNull View itemView) {
+                super(itemView);
+                gameTitle = itemView.findViewById(R.id.gameTitle);
+
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        //TODO: clicking game item joins game
+                    }
+                });
+            }
+
+        }
+    }
 }

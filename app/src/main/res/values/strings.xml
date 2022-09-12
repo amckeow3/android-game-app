@@ -2,6 +2,7 @@
     <string name="app_name">Project2_GameApp</string>
     <string name="login_fragment">Login</string>
     <string name="register_fragment">Create a New Account</string>
+    <string name="game_lobby_fragment">Game Lobby</string>
     <string name="first_name_placeholder_text">First Name</string>
     <string name="last_name_text">Last Name</string>
     <string name="email_placeholder_text">Email</string>

@@ -60,7 +60,6 @@ public class ViewChatroomFragment extends Fragment {
     Chatroom chatroomObject;
     String chatroomName;
     String chatroomId;
-    Button leaveButton;
     FloatingActionButton sendButton;
     RecyclerView recyclerView, viewersRecyclerView;
     LinearLayoutManager linearLayoutManager, linearLayoutManager2;
@@ -216,7 +215,6 @@ public class ViewChatroomFragment extends Fragment {
             }
         });
 
-        //leaveButton = view.findViewById(R.id.buttonLeave);
         getActivity().findViewById(R.id.toolbar).findViewById(R.id.buttonLeaveChatroom).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
