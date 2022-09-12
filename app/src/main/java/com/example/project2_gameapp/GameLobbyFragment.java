@@ -17,6 +17,16 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +37,8 @@ import java.util.List;
  * create an instance of this fragment.
  */
 public class GameLobbyFragment extends Fragment {
+    private FirebaseAuth mAuth;
+    FirebaseFirestore db;
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -78,16 +90,45 @@ public class GameLobbyFragment extends Fragment {
     ArrayList<Game> games;
     RecyclerView gameList;
     LinearLayoutManager linearLayoutManager;
-    //adapter
-    Button makeGame;
+    GameLobbyRecyclerViewAdapter adapter;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         getActivity().setTitle(R.string.game_lobby_fragment);
 
+        db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser user = mAuth.getCurrentUser();
+
         games = new ArrayList<>();
         gameList = view.findViewById(R.id.gameList);
+        gameList.setHasFixedSize(false);
+        linearLayoutManager = new LinearLayoutManager(getContext());
+        adapter = new GameLobbyRecyclerViewAdapter(games);
+        gameList.setAdapter(adapter);
+
+        db.collection("games").addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                games.clear();
+
+                for(QueryDocumentSnapshot doc : value) {
+                    Game game = doc.toObject(Game.class);
+                    game.setGameID(doc.getId());
+                    games.add(game);
+                }
+
+                adapter.notifyDataSetChanged();
+            }
+        });
+
+        view.findViewById(R.id.buttonMakeGame).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
     }
 
     class GameLobbyRecyclerViewAdapter extends RecyclerView.Adapter<GameLobbyRecyclerViewAdapter.GameLobbyViewHolder> {
@@ -109,16 +150,18 @@ public class GameLobbyFragment extends Fragment {
         public void onBindViewHolder(@NonNull GameLobbyRecyclerViewAdapter.GameLobbyViewHolder holder, int position) {
             if(gamesArrayList.size() != 0) {
                 Game game = gamesArrayList.get(position);
+                holder.gameTitle.setText(game.getGameTitle());
             }
         }
 
         @Override
         public int getItemCount() {
-            return 0;
+            return gamesArrayList.size();
         }
 
         class GameLobbyViewHolder extends RecyclerView.ViewHolder {
             TextView gameTitle;
+            Game game;
 
             public GameLobbyViewHolder(@NonNull View itemView) {
                 super(itemView);
@@ -127,11 +170,23 @@ public class GameLobbyFragment extends Fragment {
                 itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        //TODO: clicking game item joins game
+                        mListener.joinGame(game);
                     }
                 });
             }
 
         }
+    }
+
+    GameLobbyFragmentListener mListener;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        mListener = (GameLobbyFragmentListener) context;
+    }
+
+    interface GameLobbyFragmentListener {
+        void joinGame(Game game);
     }
 }

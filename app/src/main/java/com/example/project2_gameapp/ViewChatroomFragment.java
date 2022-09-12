@@ -459,6 +459,7 @@ public class ViewChatroomFragment extends Fragment {
                 User viewer = membersArrayList.get(position);
                 //holder.setupUI(viewer);
                 holder.name.setText(viewer.firstName);
+                holder.mViewer = viewer;
 
                 FirebaseStorage storage = FirebaseStorage.getInstance();
                 StorageReference profilePic = storage.getReference().child("images/").child(viewer.getId());
