@@ -234,7 +234,14 @@ public class ViewChatroomFragment extends Fragment {
                     }
                 });
             }
-        });
+    });
+
+    binding.cardViewUnoGame.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            mListener.newGame();
+        }
+    });
     }
 
     void getChatroomMembers() {
@@ -497,5 +504,6 @@ public class ViewChatroomFragment extends Fragment {
 
     public interface ViewChatroomFragmentListener {
         void leaveChatroom();
+        void newGame();
     }
 }
