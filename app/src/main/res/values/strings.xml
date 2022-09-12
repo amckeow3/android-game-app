@@ -20,6 +20,7 @@
     <string name="write_msg_txt">Write your message</string>
     <string name="one_like_txt">1 Like | </string>
     <string name="request_game_txt">Request Game</string>
+    <string name="create_game_txt">Create Game</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

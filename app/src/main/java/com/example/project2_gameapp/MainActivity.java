@@ -66,6 +66,11 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
                         .replace(R.id.rootView, new ChatroomsFragment(), "chatrooms-fragment")
                         .commit();
                 break;
+            case R.id.nav_games:
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.rootView, new ChatroomsFragment(), "chatrooms-fragment")
+                        .commit();
+                break;
             case R.id.nav_logout:
                 FirebaseAuth.getInstance().signOut();
                 goToLogin();

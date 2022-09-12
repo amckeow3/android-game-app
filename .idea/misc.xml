@@ -4,6 +4,18 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/Kristin/Documents/GitHub/android-game-app/app/src/main/res/drawable/ic_person.xml" value="0.209" />
+        <entry key="..\:/Users/Kristin/Documents/GitHub/android-game-app/app/src/main/res/layout/activity_main.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Kristin/Documents/GitHub/android-game-app/app/src/main/res/layout/fragment_chatrooms.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Kristin/Documents/GitHub/android-game-app/app/src/main/res/layout/fragment_create_chatroom.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Kristin/Documents/GitHub/android-game-app/app/src/main/res/layout/fragment_game_lobby.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Kristin/Documents/GitHub/android-game-app/app/src/main/res/layout/fragment_game_room.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Kristin/Documents/GitHub/android-game-app/app/src/main/res/layout/fragment_new_game.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Kristin/Documents/GitHub/android-game-app/app/src/main/res/layout/fragment_view_chatroom.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Kristin/Documents/GitHub/android-game-app/app/src/main/res/layout/game_line_item.xml" value="0.18984375" />
+        <entry key="..\:/Users/Kristin/Documents/GitHub/android-game-app/app/src/main/res/layout/nav_header.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Kristin/Documents/GitHub/android-game-app/app/src/main/res/layout/toolbar.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Kristin/Documents/GitHub/android-game-app/app/src/main/res/layout/viewer_line_item.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Kristin/Documents/GitHub/android-game-app/app/src/main/res/menu/navigation_menu.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/adria/AndroidStudioProjects/Project2_GameApp/app/src/main/res/drawable/button_border.xml" value="0.1" />
         <entry key="..\:/Users/adria/AndroidStudioProjects/Project2_GameApp/app/src/main/res/drawable/ic_logout.xml" value="0.1" />
         <entry key="..\:/Users/adria/AndroidStudioProjects/Project2_GameApp/app/src/main/res/drawable/ic_person.xml" value="0.1" />
