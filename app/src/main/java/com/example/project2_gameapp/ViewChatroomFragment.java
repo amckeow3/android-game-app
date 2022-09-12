@@ -94,6 +94,7 @@ public class ViewChatroomFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentViewChatroomBinding.inflate(inflater, container, false);
+        getActivity().findViewById(R.id.toolbar).setVisibility(View.VISIBLE);
         getActivity().setTitle(chatroomName);
         getActivity().findViewById(R.id.toolbar).findViewById(R.id.buttonLeaveChatroom).setVisibility(View.VISIBLE);
         return binding.getRoot();

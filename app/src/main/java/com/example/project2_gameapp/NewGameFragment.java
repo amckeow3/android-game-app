@@ -25,8 +25,7 @@ public class NewGameFragment extends Fragment {
     private String mParam2;
 
     private void setupUI() {
-        getActivity().setTitle("New Game");
-        getActivity().findViewById(R.id.toolbar).findViewById(R.id.buttonLeaveChatroom).setVisibility(View.INVISIBLE);
+        getActivity().findViewById(R.id.toolbar).setVisibility(View.INVISIBLE);
     }
 
     public NewGameFragment() {
