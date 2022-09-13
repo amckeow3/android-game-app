@@ -1,11 +1,13 @@
 package com.example.project2_gameapp;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,6 +22,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
 
 public class GameRoomFragment extends Fragment {
     FragmentGameRoomBinding binding;
@@ -62,6 +66,10 @@ public class GameRoomFragment extends Fragment {
         return binding.getRoot();
     }
 
+    ArrayList<Card> playerHand;
+    LinearLayoutManager linearLayoutManager;
+    
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -74,14 +82,15 @@ public class GameRoomFragment extends Fragment {
         binding.textViewGameTitle.setText(gameInstance.getGameTitle());
         //TODO: change color/tint of cardImage
         binding.currentCardValue.setText(currentCard.getValue());
-        Log.d("qq", "currentcard color: " + currentCard.getColor());
+
+        binding.currentCardImage.setColorFilter(Color.parseColor(currentCard.getColor()));
 
         binding.drawCardButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Card newCard = new Card();
                 binding.currentCardValue.setText(newCard.getValue());
-                Log.d("qq", "drawn card color: " + newCard.getColor());
+                binding.currentCardImage.setColorFilter(Color.parseColor(newCard.getColor()));
             }
         });
     }
