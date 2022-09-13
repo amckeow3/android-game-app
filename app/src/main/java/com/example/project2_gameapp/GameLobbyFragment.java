@@ -110,6 +110,7 @@ public class GameLobbyFragment extends Fragment {
         gameList = view.findViewById(R.id.gameList);
         gameList.setHasFixedSize(false);
         linearLayoutManager = new LinearLayoutManager(getContext());
+        gameList.setLayoutManager(linearLayoutManager);
         adapter = new GameLobbyRecyclerViewAdapter(games);
         gameList.setAdapter(adapter);
 
@@ -124,6 +125,7 @@ public class GameLobbyFragment extends Fragment {
                     games.add(game);
                 }
 
+                Log.d("qq", "games arraylist: " + games);
                 adapter.notifyDataSetChanged();
             }
         });
@@ -138,6 +140,7 @@ public class GameLobbyFragment extends Fragment {
                 newGame.put("player1", user.getUid());
                 newGame.put("player2", "");
                 newGame.put("topCard", new Card());
+                newGame.put("player1", user.getUid());
                 newGame.put("moves", new HashMap<String, Object>());
                 newGame.put("player1Hand", new ArrayList<Card>());
                 newGame.put("player2Hand", new ArrayList<Card>());
@@ -184,8 +187,9 @@ public class GameLobbyFragment extends Fragment {
         @Override
         public void onBindViewHolder(@NonNull GameLobbyRecyclerViewAdapter.GameLobbyViewHolder holder, int position) {
             if(gamesArrayList.size() != 0) {
-                Game game = gamesArrayList.get(position);
-                holder.gameTitle.setText(game.getGameTitle());
+                Game gameObj = gamesArrayList.get(position);
+                holder.gameTitle.setText(gameObj.getGameTitle());
+                holder.game = gameObj;
             }
         }
 

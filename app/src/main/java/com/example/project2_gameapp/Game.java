@@ -1,9 +1,10 @@
 package com.example.project2_gameapp;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Game {
+public class Game implements Serializable {
     String gameTitle, gameID, currentTurn, player1, player2;
     Card topCard;
     ArrayList<Card> player1Hand, player2Hand;

@@ -7,22 +7,29 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+
 import com.example.project2_gameapp.databinding.FragmentGameRoomBinding;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class GameRoomFragment extends Fragment {
     FragmentGameRoomBinding binding;
-    GameRoomFragmentListener mListener;
+    //GameRoomFragmentListener mListener;
+    private FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_GAME = "ARG_GAME";
 
-    private String mParam1;
-    private String mParam2;
-
+    private Game gameInstance;
 
     private void setupUI() {
         getActivity().setTitle("Game Room");
@@ -31,11 +38,10 @@ public class GameRoomFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static GameRoomFragment newInstance(String param1, String param2) {
+    public static GameRoomFragment newInstance(Game game) {
         GameRoomFragment fragment = new GameRoomFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putSerializable(ARG_GAME, game);
         fragment.setArguments(args);
         return fragment;
     }
@@ -44,8 +50,7 @@ public class GameRoomFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            gameInstance = (Game) getArguments().getSerializable(ARG_GAME);
         }
     }
 
@@ -61,9 +66,29 @@ public class GameRoomFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setupUI();
+
+        DocumentReference docRef = db.collection("games").document(gameInstance.gameID);
+
+        Card currentCard = gameInstance.topCard;
+
+        binding.textViewGameTitle.setText(gameInstance.getGameTitle());
+        //TODO: change color/tint of cardImage
+        binding.currentCardValue.setText(currentCard.getValue());
+        Log.d("qq", "currentcard color: " + currentCard.getColor());
+
+        binding.drawCardButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Card newCard = new Card();
+                binding.currentCardValue.setText(newCard.getValue());
+                Log.d("qq", "drawn card color: " + newCard.getColor());
+            }
+        });
     }
 
-    @Override
+    //TODO: RecyclerViewAdapter/ViewHolder for player hand
+
+    /*@Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         mListener = (GameRoomFragmentListener) context;
@@ -71,5 +96,5 @@ public class GameRoomFragment extends Fragment {
 
     interface GameRoomFragmentListener {
 
-    }
+    }*/
 }
