@@ -8,11 +8,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 
 import com.example.project2_gameapp.databinding.FragmentGameRoomBinding;
@@ -67,20 +70,31 @@ public class GameRoomFragment extends Fragment {
     }
 
     ArrayList<Card> playerHand;
+    RecyclerView cardHandRecyclerView;
     LinearLayoutManager linearLayoutManager;
-    
+    GameRoomRecyclerViewAdapter adapter;
+
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setupUI();
 
+        cardHandRecyclerView = binding.playerHandRecyclerView;
+        cardHandRecyclerView.setHasFixedSize(false);
+        linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
+        cardHandRecyclerView.setLayoutManager(linearLayoutManager);
+        adapter = new GameRoomRecyclerViewAdapter(playerHand);
+        cardHandRecyclerView.setAdapter(adapter);
+
+        //TODO: get game document
         DocumentReference docRef = db.collection("games").document(gameInstance.gameID);
+
+        //TODO: deal 7 cards per hand
 
         Card currentCard = gameInstance.topCard;
 
         binding.textViewGameTitle.setText(gameInstance.getGameTitle());
-        //TODO: change color/tint of cardImage
         binding.currentCardValue.setText(currentCard.getValue());
 
         binding.currentCardImage.setColorFilter(Color.parseColor(currentCard.getColor()));
@@ -95,7 +109,47 @@ public class GameRoomFragment extends Fragment {
         });
     }
 
-    //TODO: RecyclerViewAdapter/ViewHolder for player hand
+    class GameRoomRecyclerViewAdapter extends RecyclerView.Adapter<GameRoomRecyclerViewAdapter.GameRoomViewHolder> {
+        ArrayList<Card> cardArrayList;
+
+        public GameRoomRecyclerViewAdapter(ArrayList<Card> cards){
+            this.cardArrayList = cards;
+        }
+        @NonNull
+        @Override
+        public GameRoomRecyclerViewAdapter.GameRoomViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_line_item, parent, false);
+            GameRoomViewHolder gameRoomViewHolder = new GameRoomViewHolder(view);
+            return gameRoomViewHolder;
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull GameRoomRecyclerViewAdapter.GameRoomViewHolder holder, int position) {
+            if(cardArrayList.size() != 0) {
+                holder.cardValue.setText(cardArrayList.get(position).getValue());
+                holder.cardImage.setColorFilter(Color.parseColor(cardArrayList.get(position).getColor()));
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            return cardArrayList.size();
+        }
+
+        class GameRoomViewHolder extends RecyclerView.ViewHolder {
+            ImageView cardImage;
+            TextView cardValue;
+            Card card;
+
+            public GameRoomViewHolder(@NonNull View itemView) {
+                super(itemView);
+                cardImage = itemView.findViewById(R.id.imageViewCardBack);
+                cardValue = itemView.findViewById(R.id.textViewCardValue);
+
+                //TODO: play card when clicked
+            }
+        }
+    }
 
     /*@Override
     public void onAttach(@NonNull Context context) {
