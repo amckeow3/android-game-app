@@ -92,8 +92,8 @@ public class GameRoomFragment extends Fragment {
         player1ID = gameInstance.getPlayer1();
         player2ID = gameInstance.getPlayer2();
 
-        playerHand = dealCards();
-        player2Hand = dealCards();
+        playerHand = new ArrayList<>();
+        player2Hand = new ArrayList<>();;
         cardHandRecyclerView = binding.playerHandRecyclerView;
         cardHandRecyclerView.setHasFixedSize(false);
         linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
@@ -105,13 +105,21 @@ public class GameRoomFragment extends Fragment {
         }
         cardHandRecyclerView.setAdapter(adapter);
 
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if(task.isSuccessful()) {
+
+                }
+            }
+        });
+
         docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
                 if(value != null) {
                     gameInstance = value.toObject(Game.class);
                     currentCard = gameInstance.topCard;
-                    updatePlayerHand(playerHand);
                     binding.currentCardValue.setText(gameInstance.topCard.getValue());
                     binding.currentCardImage.setColorFilter(Color.parseColor(gameInstance.topCard.getColor()));
                 }
@@ -124,11 +132,38 @@ public class GameRoomFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 Card newCard = new Card();
+                Log.d("qq", "newcard value" + newCard.value);
 
                 if(newCard.getValue().equals(currentCard.value) || newCard.getColor().equals(currentCard.color)) {
                     playCard(newCard);
                 } else if (newCard.getValue().equals("Draw 4")) {
-                    playDrawFour();
+                    //playDrawFour();
+                    /*if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
+                        for(int j = 0; j < 4; j++) {
+                            Card c = new Card();
+                            player2Hand.add(c);
+                            Log.d("qq", "adding card " + c.value + c.color);
+                            Log.d("qq", "adding card to player2hand, size now " + player2Hand.size());
+                            updatePlayerHand(player2Hand);
+                        }
+                    } else {
+                        for(int j = 0; j < 4; j++) {
+                            Card c = new Card();
+                            playerHand.add(c);
+                            Log.d("qq", "adding card " + c.value + c.color);
+                            Log.d("qq", "adding card to player1hand, size now " + playerHand.size());
+                            updatePlayerHand(playerHand);
+                        }
+                    }
+                    adapter.notifyDataSetChanged();*/
+                    if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
+                        player2Hand.add(newCard);
+                        updatePlayerHand(player2Hand);
+                    } else {
+                        playerHand.add(newCard);
+                        updatePlayerHand(playerHand);
+                    }
+                    adapter.notifyDataSetChanged();
                 } else {
                     if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
                         playerHand.add(newCard);
@@ -146,30 +181,32 @@ public class GameRoomFragment extends Fragment {
     }
 
     public void updatePlayerHand(ArrayList<Card> newHand) {
-        String playerID = mAuth.getCurrentUser().getUid();
+        //String playerID = mAuth.getCurrentUser().getUid();
+        Log.d("qq", "updating arrays for player hands...");
 
-        if(playerID.equals(player1ID)) {
+        //if(playerID.equals(player1ID)) {
             db.collection("games").document(gameInstance.gameID)
                     .update("player1Hand", playerHand).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
                                 Log.d("qq", "player1Hand updated: " + playerHand.size());
+                                adapter.notifyDataSetChanged();
                             }
                         }
                     });
-        } else {
+       // } else {
             db.collection("games").document(gameInstance.gameID)
                     .update("player2Hand", player2Hand).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
                                 Log.d("qq", "player2Hand updated: " + player2Hand.size());
+                                adapter.notifyDataSetChanged();
                             }
                         }
                     });
-        }
-
+       // }
     }
 
     public void playCard(Card newTopCard) {
@@ -178,27 +215,22 @@ public class GameRoomFragment extends Fragment {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    if(newTopCard.value.equals("Draw 4")) {
-                        if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
-                            for(int j = 0; j < 4; j++) {
-                                Card c = new Card();
-                                player2Hand.add(c);
-                                Log.d("qq", "adding card " + c.value + c.color);
-                                Log.d("qq", "adding card to player2hand, size now " + player2Hand.size());
-                                updatePlayerHand(player2Hand);
-                            }
+                    Log.d("qq", "newcard value " + newTopCard.value);
+                    Log.d("qq", "newcard comp " + newTopCard.value.equals("Draw 4"));
+                    if (newTopCard.value.equals("Draw 4")) {
+                        Log.d("qq", "card is draw 4, adding...");
+                        if (mAuth.getCurrentUser().getUid().equals(player1ID)) {
+                            Log.d("qq", "player1 played, so p2 gets 4 cards");
+                            player2Hand.add(new Card());
+                            Log.d("qq", "added card to p2, updating hands");
+                            updatePlayerHand(player2Hand);
                         } else {
-                            for(int j = 0; j < 4; j++) {
-                                Card c = new Card();
-                                playerHand.add(c);
-                                Log.d("qq", "adding card " + c.value + c.color);
-                                Log.d("qq", "adding card to player1hand, size now " + playerHand.size());
-                                updatePlayerHand(playerHand);
-                            }
+                            Log.d("qq", "player2 played, so p1 gets 4 cards");
+                            playerHand.add(new Card());
+                            Log.d("qq", "added card to p1, updating hands");
+                            updatePlayerHand(playerHand);
                         }
-                        adapter.notifyDataSetChanged();
                     }
-
                 }
             }
         });
@@ -230,25 +262,6 @@ public class GameRoomFragment extends Fragment {
                                 playCard(new Card("Draw 4", "Blue"));
                                 break;
                         }
-
-                        if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
-                            for(int j = 0; j < 4; j++) {
-                                Card c = new Card();
-                                player2Hand.add(c);
-                                Log.d("qq", "adding card " + c.value + c.color);
-                                Log.d("qq", "adding card to player2hand, size now " + player2Hand.size());
-                                updatePlayerHand(player2Hand);
-                            }
-                        } else {
-                            for(int j = 0; j < 4; j++) {
-                                Card c = new Card();
-                                playerHand.add(c);
-                                Log.d("qq", "adding card " + c.value + c.color);
-                                Log.d("qq", "adding card to player1hand, size now " + playerHand.size());
-                                updatePlayerHand(playerHand);
-                            }
-                        }
-                        adapter.notifyDataSetChanged();
                     }
                 });
         b.create().show();
@@ -312,12 +325,7 @@ public class GameRoomFragment extends Fragment {
                     @Override
                     public void onClick(View view) {
                         Log.d("qq",  "played " + card.getColor() + " " + card.getValue());
-                        if(card.getValue().equals("Draw 4")) {
-                            playDrawFour();
-                        } else {
-                            playCard(card);
-                        }
-
+                        playCard(card);
                         hand.remove(cardPosition);
                         adapter.notifyDataSetChanged();
                         updatePlayerHand(hand);

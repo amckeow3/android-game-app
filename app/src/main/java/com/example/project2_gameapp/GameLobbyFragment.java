@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,12 +20,14 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -149,6 +152,67 @@ public class GameLobbyFragment extends Fragment {
                     public void onComplete(@NonNull Task<Void> task) {
                         if(task.isSuccessful()) {
                             Log.d("qq", "game created");
+                            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                            b.setTitle("Creating game").setMessage("Waiting for players...").setCancelable(false);
+                            b.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+
+                                    Toast.makeText(getActivity(), "Game canceled by player", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            AlertDialog waitBox = b.create();
+                            waitBox.show();
+                            CountDownTimer cdt;
+                            cdt = new CountDownTimer(30000, 1000) {
+
+                                @Override
+                                public void onTick(long l) {
+                                    Log.d("qq", "onTick: " + l/1000);
+                                    b.setMessage("Waiting for players..." + l/1000);
+                                }
+
+                                @Override
+                                public void onFinish() {
+
+                                    db.collection("games").document(docRef.getId())
+                                            .delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    waitBox.dismiss();
+                                                    Toast.makeText(getActivity(), "No players joined, game canceled", Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                }
+                            };
+
+                            cdt.start();
+
+                            db.collection("games").document(docRef.getId()).addSnapshotListener(new EventListener<DocumentSnapshot>() {
+                                @Override
+                                public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
+                                    if(value != null) {
+                                        String test = value.getString("player2");
+                                        Log.d("qq", "player2: " + test);
+                                        if(value.getString("player2") != null && !test.equals("")) {
+                                            cdt.cancel();
+                                            waitBox.dismiss();
+                                            DocumentReference dr = db.collection("games").document(docRef.getId());
+                                            dr.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                    if(task.isSuccessful()) {
+                                                        Game game = task.getResult().toObject(Game.class);
+                                                        mListener.joinGame(game);
+                                                    }
+
+                                                }
+                                            });
+                                        }
+                                    }
+
+                                }
+                            });
                         } else {
                             AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                             b.setTitle("Error creating game")
