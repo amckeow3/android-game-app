@@ -73,6 +73,7 @@ public class GameRoomFragment extends Fragment {
         return binding.getRoot();
     }
 
+    String player1ID, player2ID;
     ArrayList<Card> playerHand, player2Hand;
     RecyclerView cardHandRecyclerView;
     LinearLayoutManager linearLayoutManager;
@@ -86,15 +87,23 @@ public class GameRoomFragment extends Fragment {
         setupUI();
         DocumentReference docRef = db.collection("games").document(gameInstance.gameID);
 
-        playerHand = new ArrayList<>();
+        player1ID = gameInstance.getPlayer1();
+        player2ID = gameInstance.getPlayer2();
+
+        playerHand = dealCards();
+        player2Hand = dealCards();
         cardHandRecyclerView = binding.playerHandRecyclerView;
         cardHandRecyclerView.setHasFixedSize(false);
         linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
         cardHandRecyclerView.setLayoutManager(linearLayoutManager);
-        adapter = new GameRoomRecyclerViewAdapter(playerHand);
+        if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
+            adapter = new GameRoomRecyclerViewAdapter(playerHand);
+        } else {
+            adapter = new GameRoomRecyclerViewAdapter(player2Hand);
+        }
         cardHandRecyclerView.setAdapter(adapter);
 
-        dealCards();
+        //adapter.notifyDataSetChanged();
 
         docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
@@ -102,6 +111,7 @@ public class GameRoomFragment extends Fragment {
                 if(value != null) {
                     gameInstance = value.toObject(Game.class);
                     currentCard = gameInstance.topCard;
+                    updatePlayerHand(playerHand);
                     binding.currentCardValue.setText(gameInstance.topCard.getValue());
                     binding.currentCardImage.setColorFilter(Color.parseColor(gameInstance.topCard.getColor()));
                     Log.d("qq", "currentcard color in snapshot: " + gameInstance.topCard.color);
@@ -128,6 +138,7 @@ public class GameRoomFragment extends Fragment {
                 } else {
                     playerHand.add(newCard);
                     adapter.notifyDataSetChanged();
+                    updatePlayerHand(playerHand);
                 }
 
             }
@@ -135,15 +146,30 @@ public class GameRoomFragment extends Fragment {
     }
 
     public void updatePlayerHand(ArrayList<Card> newHand) {
-        db.collection("games").document(gameInstance.gameID)
-                .update("player1Hand", playerHand).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            Log.d("qq", "player1Hand updated: " + playerHand.toString());
+        String playerID = mAuth.getCurrentUser().getUid();
+
+        if(playerID.equals(player1ID)) {
+            db.collection("games").document(gameInstance.gameID)
+                    .update("player1Hand", playerHand).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Log.d("qq", "player1Hand updated: " + playerHand.toString());
+                            }
                         }
-                    }
-                });
+                    });
+        } else {
+            db.collection("games").document(gameInstance.gameID)
+                    .update("player2Hand", player2Hand).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Log.d("qq", "player2Hand updated: " + player2Hand.toString());
+                            }
+                        }
+                    });
+        }
+
     }
 
     public void playCard(Card newTopCard) {
@@ -159,13 +185,14 @@ public class GameRoomFragment extends Fragment {
         });
     }
 
-    public void dealCards() {
+    public ArrayList<Card> dealCards() {
+        ArrayList<Card> newHand = new ArrayList<>();
         for(int i = 0; i < FULL_HAND; i++) {
             Card newCard = new Card();
-            playerHand.add(newCard);
+            newHand.add(newCard);
         }
 
-        adapter.notifyDataSetChanged();
+        return newHand;
     }
 
     class GameRoomRecyclerViewAdapter extends RecyclerView.Adapter<GameRoomRecyclerViewAdapter.GameRoomViewHolder> {
@@ -186,6 +213,7 @@ public class GameRoomFragment extends Fragment {
         public void onBindViewHolder(@NonNull GameRoomRecyclerViewAdapter.GameRoomViewHolder holder, int position) {
             if(cardArrayList.size() != 0) {
                 holder.card = cardArrayList.get(position);
+                holder.hand = cardArrayList;
                 holder.cardPosition = position;
                 holder.cardValue.setText(cardArrayList.get(position).getValue());
                 holder.cardImage.setColorFilter(Color.parseColor(cardArrayList.get(position).getColor()));
@@ -202,6 +230,7 @@ public class GameRoomFragment extends Fragment {
             TextView cardValue;
             Card card;
             int cardPosition;
+            ArrayList<Card> hand;
 
             public GameRoomViewHolder(@NonNull View itemView) {
                 super(itemView);
@@ -213,8 +242,9 @@ public class GameRoomFragment extends Fragment {
                     public void onClick(View view) {
                         Log.d("qq",  "played " + card.getColor() + " " + card.getValue());
                         playCard(card);
-                        playerHand.remove(cardPosition);
+                        hand.remove(cardPosition);
                         adapter.notifyDataSetChanged();
+                        updatePlayerHand(hand);
                     }
                 });
             }
