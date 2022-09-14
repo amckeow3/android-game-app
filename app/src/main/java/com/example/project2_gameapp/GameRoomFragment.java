@@ -92,8 +92,8 @@ public class GameRoomFragment extends Fragment {
         player1ID = gameInstance.getPlayer1();
         player2ID = gameInstance.getPlayer2();
 
-        playerHand = new ArrayList<>();
-        player2Hand = new ArrayList<>();;
+        playerHand = dealCards();
+        player2Hand = dealCards();
         cardHandRecyclerView = binding.playerHandRecyclerView;
         cardHandRecyclerView.setHasFixedSize(false);
         linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
@@ -105,11 +105,29 @@ public class GameRoomFragment extends Fragment {
         }
         cardHandRecyclerView.setAdapter(adapter);
 
+
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if(task.isSuccessful()) {
+                    Game gameInstance = task.getResult().toObject(Game.class);
 
+                    for(int i = 0; i < 7; i++) {
+                        gameInstance.getPlayer1Hand().add(playerHand.get(i));
+                        gameInstance.getPlayer2Hand().add(player2Hand.get(i));
+                    }
+                    /*docRef.update("player1Hand", playerHand).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            Log.d("qq", "Player 1's hand dealt and set to doc");
+                        }
+                    });
+                    docRef.update("player2Hand", player2Hand).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            Log.d("qq", "Player 2's hand dealt and set to doc");
+                        }
+                    });*/
                 }
             }
         });
@@ -156,14 +174,6 @@ public class GameRoomFragment extends Fragment {
                         }
                     }
                     adapter.notifyDataSetChanged();*/
-                    if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
-                        player2Hand.add(newCard);
-                        updatePlayerHand(player2Hand);
-                    } else {
-                        playerHand.add(newCard);
-                        updatePlayerHand(playerHand);
-                    }
-                    adapter.notifyDataSetChanged();
                 } else {
                     if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
                         playerHand.add(newCard);
