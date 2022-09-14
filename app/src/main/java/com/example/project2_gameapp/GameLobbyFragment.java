@@ -124,8 +124,6 @@ public class GameLobbyFragment extends Fragment {
                     game.setGameID(doc.getId());
                     games.add(game);
                 }
-
-                Log.d("qq", "games arraylist: " + games);
                 adapter.notifyDataSetChanged();
             }
         });

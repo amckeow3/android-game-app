@@ -24,7 +24,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 
@@ -70,7 +73,7 @@ public class GameRoomFragment extends Fragment {
         return binding.getRoot();
     }
 
-    ArrayList<Card> playerHand;
+    ArrayList<Card> playerHand, player2Hand;
     RecyclerView cardHandRecyclerView;
     LinearLayoutManager linearLayoutManager;
     GameRoomRecyclerViewAdapter adapter;
@@ -81,6 +84,7 @@ public class GameRoomFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setupUI();
+        DocumentReference docRef = db.collection("games").document(gameInstance.gameID);
 
         playerHand = new ArrayList<>();
         cardHandRecyclerView = binding.playerHandRecyclerView;
@@ -90,23 +94,30 @@ public class GameRoomFragment extends Fragment {
         adapter = new GameRoomRecyclerViewAdapter(playerHand);
         cardHandRecyclerView.setAdapter(adapter);
 
-        DocumentReference docRef = db.collection("games").document(gameInstance.gameID);
-
         dealCards();
 
-        currentCard = gameInstance.topCard;
+        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
+                if(value != null) {
+                    gameInstance = value.toObject(Game.class);
+                    currentCard = gameInstance.topCard;
+                    binding.currentCardValue.setText(gameInstance.topCard.getValue());
+                    binding.currentCardImage.setColorFilter(Color.parseColor(gameInstance.topCard.getColor()));
+                    Log.d("qq", "currentcard color in snapshot: " + gameInstance.topCard.color);
+                    Log.d("qq", "currentcard value in snapshot: " + gameInstance.topCard.value);
+                }
+            }
+        });
 
         binding.textViewGameTitle.setText(gameInstance.getGameTitle());
-        binding.currentCardValue.setText(currentCard.getValue());
-
-        binding.currentCardImage.setColorFilter(Color.parseColor(currentCard.getColor()));
 
         binding.drawCardButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Card newCard = new Card();
                 Log.d("qq", "currentcolor: " + currentCard.color + ", newcolor: " + newCard.color);
-                Log.d("qq", "currentvalue: " + currentCard.value + ", newcolor: " + newCard.value);
+                Log.d("qq", "currentvalue: " + currentCard.value + ", newvalue: " + newCard.value);
 
                 if(newCard.getValue().equals(currentCard.value) || newCard.getColor().equals(currentCard.color)) {
                     playCard(newCard);
@@ -123,13 +134,29 @@ public class GameRoomFragment extends Fragment {
         });
     }
 
+    public void updatePlayerHand(ArrayList<Card> newHand) {
+        db.collection("games").document(gameInstance.gameID)
+                .update("player1Hand", playerHand).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d("qq", "player1Hand updated: " + playerHand.toString());
+                        }
+                    }
+                });
+    }
+
     public void playCard(Card newTopCard) {
-        binding.currentCardValue.setText(newTopCard.getValue());
-        binding.currentCardImage.setColorFilter(Color.parseColor(newTopCard.getColor()));
-        currentCard.setColor(newTopCard.getColor());
-        currentCard.setValue(newTopCard.getValue());
-        Log.d("qq", "newcurrentcolor: " + currentCard.color);
-        Log.d("qq", "newcurrentvalue: " + currentCard.value);
+        db.collection("games").document(gameInstance.gameID)
+                .update("topCard", newTopCard).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    Log.d("qq", "newcurrentcolor: " + currentCard.color);
+                    Log.d("qq", "newcurrentvalue: " + currentCard.value);
+                }
+            }
+        });
     }
 
     public void dealCards() {
@@ -137,6 +164,8 @@ public class GameRoomFragment extends Fragment {
             Card newCard = new Card();
             playerHand.add(newCard);
         }
+
+        adapter.notifyDataSetChanged();
     }
 
     class GameRoomRecyclerViewAdapter extends RecyclerView.Adapter<GameRoomRecyclerViewAdapter.GameRoomViewHolder> {
