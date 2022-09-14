@@ -35,6 +35,7 @@ public class GameRoomFragment extends Fragment {
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     private static final String ARG_GAME = "ARG_GAME";
+    private static final int FULL_HAND = 7;
 
     private Game gameInstance;
 
@@ -73,6 +74,7 @@ public class GameRoomFragment extends Fragment {
     RecyclerView cardHandRecyclerView;
     LinearLayoutManager linearLayoutManager;
     GameRoomRecyclerViewAdapter adapter;
+    Card currentCard;
 
 
     @Override
@@ -80,6 +82,7 @@ public class GameRoomFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         setupUI();
 
+        playerHand = new ArrayList<>();
         cardHandRecyclerView = binding.playerHandRecyclerView;
         cardHandRecyclerView.setHasFixedSize(false);
         linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
@@ -87,12 +90,11 @@ public class GameRoomFragment extends Fragment {
         adapter = new GameRoomRecyclerViewAdapter(playerHand);
         cardHandRecyclerView.setAdapter(adapter);
 
-        //TODO: get game document
         DocumentReference docRef = db.collection("games").document(gameInstance.gameID);
 
-        //TODO: deal 7 cards per hand
+        dealCards();
 
-        Card currentCard = gameInstance.topCard;
+        currentCard = gameInstance.topCard;
 
         binding.textViewGameTitle.setText(gameInstance.getGameTitle());
         binding.currentCardValue.setText(currentCard.getValue());
@@ -103,10 +105,38 @@ public class GameRoomFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 Card newCard = new Card();
-                binding.currentCardValue.setText(newCard.getValue());
-                binding.currentCardImage.setColorFilter(Color.parseColor(newCard.getColor()));
+                Log.d("qq", "currentcolor: " + currentCard.color + ", newcolor: " + newCard.color);
+                Log.d("qq", "currentvalue: " + currentCard.value + ", newcolor: " + newCard.value);
+
+                if(newCard.getValue().equals(currentCard.value) || newCard.getColor().equals(currentCard.color)) {
+                    playCard(newCard);
+                } else if (newCard.getValue().equals("Draw 4")) {
+                    //TODO: ask player to set color
+                    playCard(new Card("Draw 4", "Blue"));
+                    //playDrawFour();
+                } else {
+                    playerHand.add(newCard);
+                    adapter.notifyDataSetChanged();
+                }
+
             }
         });
+    }
+
+    public void playCard(Card newTopCard) {
+        binding.currentCardValue.setText(newTopCard.getValue());
+        binding.currentCardImage.setColorFilter(Color.parseColor(newTopCard.getColor()));
+        currentCard.setColor(newTopCard.getColor());
+        currentCard.setValue(newTopCard.getValue());
+        Log.d("qq", "newcurrentcolor: " + currentCard.color);
+        Log.d("qq", "newcurrentvalue: " + currentCard.value);
+    }
+
+    public void dealCards() {
+        for(int i = 0; i < FULL_HAND; i++) {
+            Card newCard = new Card();
+            playerHand.add(newCard);
+        }
     }
 
     class GameRoomRecyclerViewAdapter extends RecyclerView.Adapter<GameRoomRecyclerViewAdapter.GameRoomViewHolder> {
@@ -126,6 +156,8 @@ public class GameRoomFragment extends Fragment {
         @Override
         public void onBindViewHolder(@NonNull GameRoomRecyclerViewAdapter.GameRoomViewHolder holder, int position) {
             if(cardArrayList.size() != 0) {
+                holder.card = cardArrayList.get(position);
+                holder.cardPosition = position;
                 holder.cardValue.setText(cardArrayList.get(position).getValue());
                 holder.cardImage.setColorFilter(Color.parseColor(cardArrayList.get(position).getColor()));
             }
@@ -140,13 +172,22 @@ public class GameRoomFragment extends Fragment {
             ImageView cardImage;
             TextView cardValue;
             Card card;
+            int cardPosition;
 
             public GameRoomViewHolder(@NonNull View itemView) {
                 super(itemView);
                 cardImage = itemView.findViewById(R.id.imageViewCardBack);
                 cardValue = itemView.findViewById(R.id.textViewCardValue);
 
-                //TODO: play card when clicked
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Log.d("qq",  "played " + card.getColor() + " " + card.getValue());
+                        playCard(card);
+                        playerHand.remove(cardPosition);
+                        adapter.notifyDataSetChanged();
+                    }
+                });
             }
         }
     }
