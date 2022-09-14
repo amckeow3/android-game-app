@@ -1,11 +1,13 @@
 package com.example.project2_gameapp;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -103,8 +105,6 @@ public class GameRoomFragment extends Fragment {
         }
         cardHandRecyclerView.setAdapter(adapter);
 
-        //adapter.notifyDataSetChanged();
-
         docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
@@ -114,8 +114,6 @@ public class GameRoomFragment extends Fragment {
                     updatePlayerHand(playerHand);
                     binding.currentCardValue.setText(gameInstance.topCard.getValue());
                     binding.currentCardImage.setColorFilter(Color.parseColor(gameInstance.topCard.getColor()));
-                    Log.d("qq", "currentcard color in snapshot: " + gameInstance.topCard.color);
-                    Log.d("qq", "currentcard value in snapshot: " + gameInstance.topCard.value);
                 }
             }
         });
@@ -126,19 +124,21 @@ public class GameRoomFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 Card newCard = new Card();
-                Log.d("qq", "currentcolor: " + currentCard.color + ", newcolor: " + newCard.color);
-                Log.d("qq", "currentvalue: " + currentCard.value + ", newvalue: " + newCard.value);
 
                 if(newCard.getValue().equals(currentCard.value) || newCard.getColor().equals(currentCard.color)) {
                     playCard(newCard);
                 } else if (newCard.getValue().equals("Draw 4")) {
-                    //TODO: ask player to set color
-                    playCard(new Card("Draw 4", "Blue"));
-                    //playDrawFour();
+                    playDrawFour();
                 } else {
-                    playerHand.add(newCard);
+                    if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
+                        playerHand.add(newCard);
+                        updatePlayerHand(playerHand);
+                    } else {
+                        player2Hand.add(newCard);
+                        updatePlayerHand(player2Hand);
+                    }
                     adapter.notifyDataSetChanged();
-                    updatePlayerHand(playerHand);
+
                 }
 
             }
@@ -154,7 +154,7 @@ public class GameRoomFragment extends Fragment {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
-                                Log.d("qq", "player1Hand updated: " + playerHand.toString());
+                                Log.d("qq", "player1Hand updated: " + playerHand.size());
                             }
                         }
                     });
@@ -164,7 +164,7 @@ public class GameRoomFragment extends Fragment {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
-                                Log.d("qq", "player2Hand updated: " + player2Hand.toString());
+                                Log.d("qq", "player2Hand updated: " + player2Hand.size());
                             }
                         }
                     });
@@ -183,6 +183,46 @@ public class GameRoomFragment extends Fragment {
                 }
             }
         });
+    }
+
+    public void playDrawFour() {
+        String[] colorSet = {"Red", "Green", "Yellow", "Blue"};
+
+        AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+        b.setTitle("Please choose a color")
+                .setItems(colorSet, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        switch (i){
+                            case 0:
+                                playCard(new Card("Draw 4", "Red"));
+                                break;
+                            case 1:
+                                playCard(new Card("Draw 4", "Green"));
+                                break;
+                            case 2:
+                                playCard(new Card("Draw 4", "Yellow"));
+                                break;
+                            case 3:
+                                playCard(new Card("Draw 4", "Blue"));
+                                break;
+                        }
+                    }
+                });
+        b.create().show();
+
+        if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
+            for(int i = 0; i < 4; i++) {
+                player2Hand.add(new Card());
+                updatePlayerHand(player2Hand);
+            }
+        } else {
+            for(int i = 0; i < 4; i++) {
+                playerHand.add(new Card());
+                updatePlayerHand(playerHand);
+            }
+        }
+        adapter.notifyDataSetChanged();
     }
 
     public ArrayList<Card> dealCards() {
@@ -241,7 +281,12 @@ public class GameRoomFragment extends Fragment {
                     @Override
                     public void onClick(View view) {
                         Log.d("qq",  "played " + card.getColor() + " " + card.getValue());
-                        playCard(card);
+                        if(card.getValue().equals("Draw 4")) {
+                            playDrawFour();
+                        } else {
+                            playCard(card);
+                        }
+
                         hand.remove(cardPosition);
                         adapter.notifyDataSetChanged();
                         updatePlayerHand(hand);

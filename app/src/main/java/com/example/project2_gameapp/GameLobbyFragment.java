@@ -207,11 +207,20 @@ public class GameLobbyFragment extends Fragment {
                 itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if(mAuth.getCurrentUser().getUid() != game.getPlayer1() && game.player2.isEmpty()) {
-                            DocumentReference docRef = db.collection("games").document();
-                            docRef.update("player2", mAuth.getCurrentUser().getUid());
+                        if(mAuth.getCurrentUser().getUid().equals(game.getPlayer1())) {
+                            mListener.joinGame(game);
+                        }else if(mAuth.getCurrentUser().getUid() != game.getPlayer1() && game.player2.isEmpty()) {
+                            DocumentReference docRef = db.collection("games").document(game.gameID);
+                            docRef.update("player2", mAuth.getCurrentUser().getUid())
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if(task.isSuccessful()) {
+                                        mListener.joinGame(game);
+                                    }
+                                }
+                            });
                         }
-                        mListener.joinGame(game);
 
                     }
                 });
