@@ -178,8 +178,27 @@ public class GameRoomFragment extends Fragment {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    Log.d("qq", "newcurrentcolor: " + currentCard.color);
-                    Log.d("qq", "newcurrentvalue: " + currentCard.value);
+                    if(newTopCard.value.equals("Draw 4")) {
+                        if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
+                            for(int j = 0; j < 4; j++) {
+                                Card c = new Card();
+                                player2Hand.add(c);
+                                Log.d("qq", "adding card " + c.value + c.color);
+                                Log.d("qq", "adding card to player2hand, size now " + player2Hand.size());
+                                updatePlayerHand(player2Hand);
+                            }
+                        } else {
+                            for(int j = 0; j < 4; j++) {
+                                Card c = new Card();
+                                playerHand.add(c);
+                                Log.d("qq", "adding card " + c.value + c.color);
+                                Log.d("qq", "adding card to player1hand, size now " + playerHand.size());
+                                updatePlayerHand(playerHand);
+                            }
+                        }
+                        adapter.notifyDataSetChanged();
+                    }
+
                 }
             }
         });
@@ -195,35 +214,47 @@ public class GameRoomFragment extends Fragment {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         switch (i){
                             case 0:
+                                Log.d("qq", "chose red");
                                 playCard(new Card("Draw 4", "Red"));
                                 break;
                             case 1:
+                                Log.d("qq", "chose green");
                                 playCard(new Card("Draw 4", "Green"));
                                 break;
                             case 2:
+                                Log.d("qq", "chose yellow");
                                 playCard(new Card("Draw 4", "Yellow"));
                                 break;
                             case 3:
+                                Log.d("qq", "chose blue");
                                 playCard(new Card("Draw 4", "Blue"));
                                 break;
                         }
+
+                        if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
+                            for(int j = 0; j < 4; j++) {
+                                Card c = new Card();
+                                player2Hand.add(c);
+                                Log.d("qq", "adding card " + c.value + c.color);
+                                Log.d("qq", "adding card to player2hand, size now " + player2Hand.size());
+                                updatePlayerHand(player2Hand);
+                            }
+                        } else {
+                            for(int j = 0; j < 4; j++) {
+                                Card c = new Card();
+                                playerHand.add(c);
+                                Log.d("qq", "adding card " + c.value + c.color);
+                                Log.d("qq", "adding card to player1hand, size now " + playerHand.size());
+                                updatePlayerHand(playerHand);
+                            }
+                        }
+                        adapter.notifyDataSetChanged();
                     }
                 });
         b.create().show();
-
-        if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
-            for(int i = 0; i < 4; i++) {
-                player2Hand.add(new Card());
-                updatePlayerHand(player2Hand);
-            }
-        } else {
-            for(int i = 0; i < 4; i++) {
-                playerHand.add(new Card());
-                updatePlayerHand(playerHand);
-            }
-        }
-        adapter.notifyDataSetChanged();
     }
+
+
 
     public ArrayList<Card> dealCards() {
         ArrayList<Card> newHand = new ArrayList<>();
