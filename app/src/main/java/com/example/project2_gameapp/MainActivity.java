@@ -13,7 +13,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity implements LoginFragment.LoginFragmentListener, RegistrationFragment.RegistrationFragmentListener, ChatroomsFragment.ChatroomsFragmentListener,
-        CreateChatroomFragment.CreateChatroomFragmentListener, ViewChatroomFragment.ViewChatroomFragmentListener, NavigationView.OnNavigationItemSelectedListener, NewGameFragment.NewGameFragmentListener, GameLobbyFragment.GameLobbyFragmentListener {
+        CreateChatroomFragment.CreateChatroomFragmentListener, ViewChatroomFragment.ViewChatroomFragmentListener, NavigationView.OnNavigationItemSelectedListener, GameLobbyFragment.GameLobbyFragmentListener {
 
     private static final String TAG = "main activity";
     private FirebaseAuth mAuth;
@@ -127,14 +127,6 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
     @Override
     public void leaveChatroom() {
         getSupportFragmentManager().popBackStack();
-    }
-
-    @Override
-    public void selectUserForGame(User user) {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.rootView, NewGameFragment.newInstance(user), "new-game-fragment")
-                .addToBackStack(null)
-                .commit();
     }
 
     @Override
