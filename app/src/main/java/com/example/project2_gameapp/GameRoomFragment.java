@@ -1,6 +1,5 @@
 package com.example.project2_gameapp;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -21,8 +20,6 @@ import android.widget.TextView;
 
 
 import com.example.project2_gameapp.databinding.FragmentGameRoomBinding;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -30,6 +27,7 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
@@ -76,7 +74,7 @@ public class GameRoomFragment extends Fragment {
     }
 
     String player1ID, player2ID;
-    ArrayList<Card> playerHand, player2Hand;
+    ArrayList<Card> player1Hand, player2Hand;
     RecyclerView cardHandRecyclerView;
     LinearLayoutManager linearLayoutManager;
     GameRoomRecyclerViewAdapter adapter;
@@ -92,45 +90,19 @@ public class GameRoomFragment extends Fragment {
         player1ID = gameInstance.getPlayer1();
         player2ID = gameInstance.getPlayer2();
 
-        playerHand = dealCards();
-        player2Hand = dealCards();
+        player1Hand = new ArrayList<>();
+        player2Hand = new ArrayList<>();
         cardHandRecyclerView = binding.playerHandRecyclerView;
         cardHandRecyclerView.setHasFixedSize(false);
         linearLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
         cardHandRecyclerView.setLayoutManager(linearLayoutManager);
         if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
-            adapter = new GameRoomRecyclerViewAdapter(playerHand);
+            adapter = new GameRoomRecyclerViewAdapter(player1Hand);
         } else {
             adapter = new GameRoomRecyclerViewAdapter(player2Hand);
         }
         cardHandRecyclerView.setAdapter(adapter);
 
-
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if(task.isSuccessful()) {
-                    Game gameInstance = task.getResult().toObject(Game.class);
-
-                    for(int i = 0; i < 7; i++) {
-                        gameInstance.getPlayer1Hand().add(playerHand.get(i));
-                        gameInstance.getPlayer2Hand().add(player2Hand.get(i));
-                    }
-                    /*docRef.update("player1Hand", playerHand).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            Log.d("qq", "Player 1's hand dealt and set to doc");
-                        }
-                    });
-                    docRef.update("player2Hand", player2Hand).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            Log.d("qq", "Player 2's hand dealt and set to doc");
-                        }
-                    });*/
-                }
-            }
-        });
 
         docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
@@ -156,31 +128,13 @@ public class GameRoomFragment extends Fragment {
                     playCard(newCard);
                 } else if (newCard.getValue().equals("Draw 4")) {
                     //playDrawFour();
-                    /*if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
-                        for(int j = 0; j < 4; j++) {
-                            Card c = new Card();
-                            player2Hand.add(c);
-                            Log.d("qq", "adding card " + c.value + c.color);
-                            Log.d("qq", "adding card to player2hand, size now " + player2Hand.size());
-                            updatePlayerHand(player2Hand);
-                        }
-                    } else {
-                        for(int j = 0; j < 4; j++) {
-                            Card c = new Card();
-                            playerHand.add(c);
-                            Log.d("qq", "adding card " + c.value + c.color);
-                            Log.d("qq", "adding card to player1hand, size now " + playerHand.size());
-                            updatePlayerHand(playerHand);
-                        }
-                    }
-                    adapter.notifyDataSetChanged();*/
                 } else {
                     if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
-                        playerHand.add(newCard);
-                        updatePlayerHand(playerHand);
+                        player1Hand.add(newCard);
+                        //updatePlayerHand(player1Hand);
                     } else {
                         player2Hand.add(newCard);
-                        updatePlayerHand(player2Hand);
+                        //updatePlayerHand(player2Hand);
                     }
                     adapter.notifyDataSetChanged();
 
@@ -190,7 +144,7 @@ public class GameRoomFragment extends Fragment {
         });
     }
 
-    public void updatePlayerHand(ArrayList<Card> newHand) {
+    /*public void updatePlayerHand(ArrayList<Card> newHand) {
         //String playerID = mAuth.getCurrentUser().getUid();
         Log.d("qq", "updating arrays for player hands...");
 
@@ -217,33 +171,19 @@ public class GameRoomFragment extends Fragment {
                         }
                     });
        // }
-    }
+    }*/
 
     public void playCard(Card newTopCard) {
-        db.collection("games").document(gameInstance.gameID)
+        /*db.collection("games").document(gameInstance.gameID)
                 .update("topCard", newTopCard).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
                     Log.d("qq", "newcard value " + newTopCard.value);
                     Log.d("qq", "newcard comp " + newTopCard.value.equals("Draw 4"));
-                    if (newTopCard.value.equals("Draw 4")) {
-                        Log.d("qq", "card is draw 4, adding...");
-                        if (mAuth.getCurrentUser().getUid().equals(player1ID)) {
-                            Log.d("qq", "player1 played, so p2 gets 4 cards");
-                            player2Hand.add(new Card());
-                            Log.d("qq", "added card to p2, updating hands");
-                            updatePlayerHand(player2Hand);
-                        } else {
-                            Log.d("qq", "player2 played, so p1 gets 4 cards");
-                            playerHand.add(new Card());
-                            Log.d("qq", "added card to p1, updating hands");
-                            updatePlayerHand(playerHand);
-                        }
-                    }
                 }
             }
-        });
+        });*/
     }
 
     public void playDrawFour() {
@@ -257,19 +197,19 @@ public class GameRoomFragment extends Fragment {
                         switch (i){
                             case 0:
                                 Log.d("qq", "chose red");
-                                playCard(new Card("Draw 4", "Red"));
+                                playCard(new Card("Draw 4", "Red", ""));
                                 break;
                             case 1:
                                 Log.d("qq", "chose green");
-                                playCard(new Card("Draw 4", "Green"));
+                                playCard(new Card("Draw 4", "Green", ""));
                                 break;
                             case 2:
                                 Log.d("qq", "chose yellow");
-                                playCard(new Card("Draw 4", "Yellow"));
+                                playCard(new Card("Draw 4", "Yellow", ""));
                                 break;
                             case 3:
                                 Log.d("qq", "chose blue");
-                                playCard(new Card("Draw 4", "Blue"));
+                                playCard(new Card("Draw 4", "Blue", ""));
                                 break;
                         }
                     }
@@ -277,9 +217,7 @@ public class GameRoomFragment extends Fragment {
         b.create().show();
     }
 
-
-
-    public ArrayList<Card> dealCards() {
+    public void dealCards() {
         ArrayList<Card> newHand = new ArrayList<>();
         for(int i = 0; i < FULL_HAND; i++) {
             Card newCard = new Card();
@@ -287,6 +225,40 @@ public class GameRoomFragment extends Fragment {
         }
 
         return newHand;
+    }
+
+    public void getPlayerHands() {
+        db.collection("games").document(gameInstance.getGameID())
+                .collection(gameInstance.getPlayer1())
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                        player1Hand.clear();
+
+                        for(QueryDocumentSnapshot doc : value) {
+                            Card c = doc.toObject(Card.class);
+                            player1Hand.add(c);
+                        }
+
+                        adapter.notifyDataSetChanged();
+                    }
+                });
+
+        db.collection("games").document(gameInstance.getGameID())
+                .collection(gameInstance.getPlayer2())
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                        player2Hand.clear();
+
+                        for(QueryDocumentSnapshot doc : value) {
+                            Card c = doc.toObject(Card.class);
+                            player2Hand.add(c);
+                        }
+
+                        adapter.notifyDataSetChanged();
+                    }
+                });
     }
 
     class GameRoomRecyclerViewAdapter extends RecyclerView.Adapter<GameRoomRecyclerViewAdapter.GameRoomViewHolder> {
@@ -338,7 +310,7 @@ public class GameRoomFragment extends Fragment {
                         playCard(card);
                         hand.remove(cardPosition);
                         adapter.notifyDataSetChanged();
-                        updatePlayerHand(hand);
+                        //updatePlayerHand(hand);
                     }
                 });
             }

@@ -7,22 +7,22 @@ import java.util.HashMap;
 public class Game implements Serializable {
     String gameTitle, gameID, currentTurn, player1, player2;
     Card topCard;
-    ArrayList<Card> player1Hand, player2Hand;
+    //ArrayList<String> player1Hand, player2Hand;
     HashMap<String, Object> moves;
     boolean gameFinished;
 
     public Game() {
     }
 
-    public Game(String gameTitle, String gameID, String player1, String player2, Card topCard, ArrayList<Card> player1Hand,
-                ArrayList<Card> player2Hand, HashMap<String, Object> moves, String currentTurn, boolean gameFinished) {
+    public Game(String gameTitle, String gameID, String player1, String player2, Card topCard, /*ArrayList<String> player1Hand,
+                ArrayList<String> player2Hand,*/ HashMap<String, Object> moves, String currentTurn, boolean gameFinished) {
         this.gameTitle = gameTitle;
         this.gameID = gameID;
         this.player1 = player1;
         this.player2 = player2;
         this.topCard = topCard;
-        this.player1Hand = player1Hand;
-        this.player2Hand = player2Hand;
+        //this.player1Hand = player1Hand;
+        //this.player2Hand = player2Hand;
         this.moves = moves;
         this.currentTurn = currentTurn;
         this.gameFinished = gameFinished;
@@ -68,21 +68,21 @@ public class Game implements Serializable {
         this.topCard = topCard;
     }
 
-    public ArrayList<Card> getPlayer1Hand() {
+    /*public ArrayList<String> getPlayer1Hand() {
         return player1Hand;
     }
 
-    public void setPlayer1Hand(ArrayList<Card> player1Hand) {
+    public void setPlayer1Hand(ArrayList<String> player1Hand) {
         this.player1Hand = player1Hand;
     }
 
-    public ArrayList<Card> getPlayer2Hand() {
+    public ArrayList<String> getPlayer2Hand() {
         return player2Hand;
     }
 
-    public void setPlayer2Hand(ArrayList<Card> player2Hand) {
+    public void setPlayer2Hand(ArrayList<String> player2Hand) {
         this.player2Hand = player2Hand;
-    }
+    }*/
 
     public HashMap<String, Object> getMoves() {
         return moves;
