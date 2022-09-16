@@ -5,6 +5,7 @@ import java.util.Random;
 public class Card {
     String value;//0-9, skip, draw 4
     String color;//red, yellow, green, blue, black for draw 4
+    String cardID;
 
     public Card() {
         //generate card of random value and color
@@ -26,11 +27,13 @@ public class Card {
             this.color = colorSet[random.nextInt(4)];
         }
 
+        this.cardID = "";
     }
 
-    public Card(String value, String color) {
+    public Card(String value, String color, String cardID) {
         this.value = value;
         this.color = color;
+        this.cardID = cardID;
     }
 
     public String getValue() {
@@ -47,5 +50,17 @@ public class Card {
 
     public void setColor(String color) {
         this.color = color;
+    }
+
+    public String getCardID() {
+        return cardID;
+    }
+
+    public void setCardID(String cardID) {
+        this.cardID = cardID;
+    }
+
+    public String makeCardString(Card card) {
+        return card.getValue() + "," + card.getColor();
     }
 }

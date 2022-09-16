@@ -19,7 +19,6 @@
         android:id="@+id/textViewCardValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Draw 4"
         android:textAlignment="center"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
