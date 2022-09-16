@@ -18,21 +18,20 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import org.w3c.dom.Document;
+
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements LoginFragment.LoginFragmentListener, RegistrationFragment.RegistrationFragmentListener, ChatroomsFragment.ChatroomsFragmentListener,
-<<<<<<< HEAD
-        CreateChatroomFragment.CreateChatroomFragmentListener, ViewChatroomFragment.ViewChatroomFragmentListener, NavigationView.OnNavigationItemSelectedListener, GameLobbyFragment.GameLobbyFragmentListener {
-=======
-        CreateChatroomFragment.CreateChatroomFragmentListener, ViewChatroomFragment.ViewChatroomFragmentListener, NavigationView.OnNavigationItemSelectedListener, NewGameFragment.NewGameFragmentListener,
-        GameLobbyFragment.GameLobbyFragmentListener, GameRoomFragment.GameRoomFragmentListener {
->>>>>>> 0243d59bc9fc45eea6deba7ab329b6f0009b140f
+        CreateChatroomFragment.CreateChatroomFragmentListener, ViewChatroomFragment.ViewChatroomFragmentListener, NavigationView.OnNavigationItemSelectedListener, GameLobbyFragment.GameLobbyFragmentListener, GameRoomFragment.GameRoomFragmentListener {
+
 
     private static final String TAG = "main activity";
     private FirebaseAuth mAuth;
@@ -160,53 +159,105 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
     }
 
     @Override
-    public void goBackToLobby(String gameID, String winner) {
-        Log.d("qq", "goBackToLobby: " + winner);
+    public void goBackToLobby(String gameID, String player1ID, String player2ID) {
+        Log.d("qq", "goBackToLobby");
         getSupportFragmentManager().popBackStack();
 
-                db.collection("games").document(gameID)
+        db.collection("games").document(gameID)
                 .collection("gameStatus").document("current").get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                         if (task.isSuccessful()) {
                             String winName = task.getResult().getString("winner");
+                            String winID = task.getResult().getString("winnerID");
+
+                            Log.d(TAG, "winner is: " + winName + " " + winID);
+
                             AlertDialog.Builder b = new AlertDialog.Builder(MainActivity.this);
                             b.setTitle("Game Over")
                                     .setMessage(winName + " Wins!")
                                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialogInterface, int i) {
-                                            clearGame(gameID);
+                                            if(winID.equals(player1ID)){
+                                                Log.d(TAG, "p1 won, deleting p2");
+                                                CollectionReference cr = db.collection("games").document(gameID).collection("hand-"+ player2ID);
+                                                cr.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                                        if (task.isSuccessful()) {
+                                                            for(QueryDocumentSnapshot doc : task.getResult()) {
+                                                                cr.document(doc.getId()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                    @Override
+                                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                                        Log.d(TAG, "p2 card deleted");
+                                                                    }
+                                                                });
+                                                            }
+                                                            Log.d(TAG, "p2 deleted, deleting other records");
+                                                            clearGame(gameID);
+                                                        }
+
+                                                    }
+                                                });
+                                            } else {
+                                                Log.d(TAG, "p2 won, deleting p1");
+                                                CollectionReference cr = db.collection("games").document(gameID).collection("hand-"+ player1ID);
+                                                cr.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                                        if (task.isSuccessful()) {
+                                                            for(QueryDocumentSnapshot doc : task.getResult()) {
+                                                                cr.document(doc.getId()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                    @Override
+                                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                                        Log.d(TAG, "p1 card deleted");
+                                                                    }
+                                                                });
+                                                            }
+                                                            Log.d(TAG, "p1 deleted, deleting other records");
+                                                            clearGame(gameID);
+                                                        }
+
+                                                    }
+                                                });
+                                            }
+
                                         }
                                     });
                             b.create().show();
                         }
                     }
                 });
-
     }
 
     private void clearGame(String gameID){
         DocumentReference gameRef = db.collection("games").document(gameID);
-        gameRef.collection("gameStatus").document("current").delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                Log.d(TAG, "gameStatus deleted");
-            }
-        });
-
-        gameRef.collection("topCard").document("current").delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                Log.d(TAG, "topCard deleted");
-            }
-        });
-
-        gameRef.collection("turn").document("current").delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                Log.d(TAG, "topCard deleted");
-            }
-        });
+        if(gameRef.get() != null) {
+            gameRef.collection("gameStatus").document("current").delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    Log.d(TAG, "gameStatus deleted");
+                    gameRef.collection("topCard").document("current").delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            Log.d(TAG, "topCard deleted");
+                            gameRef.collection("turn").document("current").delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    Log.d(TAG, "topCard deleted");
+                                    gameRef.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            Log.d(TAG, "Game deleted");
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
     }
 }

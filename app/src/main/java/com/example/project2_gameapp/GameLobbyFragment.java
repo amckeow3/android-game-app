@@ -31,6 +31,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -99,6 +100,7 @@ public class GameLobbyFragment extends Fragment {
     RecyclerView gameList;
     LinearLayoutManager linearLayoutManager;
     GameLobbyRecyclerViewAdapter adapter;
+    ListenerRegistration game;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -191,13 +193,14 @@ public class GameLobbyFragment extends Fragment {
 
                             cdt.start();
 
-                            db.collection("games").document(docRef.getId()).addSnapshotListener(new EventListener<DocumentSnapshot>() {
+                            game = db.collection("games").document(docRef.getId()).addSnapshotListener(new EventListener<DocumentSnapshot>() {
                                 @Override
                                 public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
                                     if(value != null) {
                                         String test = value.getString("player2");
                                         Log.d("qq", "player2: " + test);
                                         if(value.getString("player2") != null && !test.equals("")) {
+                                            game.remove();
                                             cdt.cancel();
                                             waitBox.dismiss();
                                             DocumentReference dr = db.collection("games").document(docRef.getId());

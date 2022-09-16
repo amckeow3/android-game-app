@@ -100,6 +100,7 @@ public class GameRoomFragment extends Fragment {
         setupUI();
         binding.textViewGameTitle.setText(gameInstance.getGameTitle());
 
+
         playerHand = new ArrayList<>();
         getPlayerHands();
         dealCards(mAuth.getCurrentUser().getUid());
@@ -135,16 +136,18 @@ public class GameRoomFragment extends Fragment {
                     String currentTurnUserID = value.getString("currentTurn");
                     turn = currentTurnUserID;
 
-                    db.collection("users").document(currentTurnUserID)
-                            .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                @Override
-                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                    if (task.isSuccessful()) {
-                                        User user = task.getResult().toObject(User.class);
-                                        binding.textViewTurn.setText(user.getFirstName() + "'s Turn");
+                    if(currentTurnUserID != null) {
+                        db.collection("users").document(currentTurnUserID)
+                                .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                        if (task.isSuccessful()) {
+                                            User user = task.getResult().toObject(User.class);
+                                            binding.textViewTurn.setText(user.getFirstName() + "'s Turn");
+                                        }
                                     }
-                                }
-                            });
+                                });
+                    }
                 }
             }
         });
@@ -166,8 +169,11 @@ public class GameRoomFragment extends Fragment {
                 if(value != null) {
                     Card topCard = value.toObject(Card.class);
                     currentCard = topCard;
-                    binding.currentCardValue.setText(topCard.getValue());
-                    binding.currentCardImage.setColorFilter(Color.parseColor(topCard.getColor()));
+                    if(topCard != null) {
+                        binding.currentCardValue.setText(topCard.getValue());
+                        binding.currentCardImage.setColorFilter(Color.parseColor(topCard.getColor()));
+                    }
+
                 }
             }
         });
@@ -175,6 +181,7 @@ public class GameRoomFragment extends Fragment {
         HashMap<String, Object> gameStatus = new HashMap<>();
         gameStatus.put("gameFinished", gameInstance.gameFinished);
         gameStatus.put("winner", "");
+        gameStatus.put("winnerID", "");
         gameStatusDocRef.set(gameStatus).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
@@ -186,13 +193,12 @@ public class GameRoomFragment extends Fragment {
         gameStatusListener = gameStatusDocRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
-                //TODO: add win condition, delete stuff once game ends, then mListener.goBackToLobby
                 Log.d("qq", "gameFinished value: " + value.getBoolean("gameFinished"));
                 if(value.getBoolean("gameFinished")) {
                     Log.d("qq", "game finished, deleting game here");
                     gameStatusListener.remove();
 
-                    mListener.goBackToLobby(gameInstance.gameID, winnerName);
+                    mListener.goBackToLobby(gameInstance.gameID, gameInstance.player1, gameInstance.player2);
                 }
             }
         });
@@ -409,6 +415,7 @@ public class GameRoomFragment extends Fragment {
                                         HashMap<String, Object> status = new HashMap<>();
                                         status.put("gameFinished", true);
                                         status.put("winner", winnerName);
+                                        status.put("winnerID", winnerID);
                                         gameStatusDocRef.set(status).addOnCompleteListener(new OnCompleteListener<Void>() {
                                             @Override
                                             public void onComplete(@NonNull Task<Void> task) {
@@ -542,6 +549,6 @@ public class GameRoomFragment extends Fragment {
     }
 
     interface GameRoomFragmentListener {
-        void goBackToLobby(String gameID, String winner);
+        void goBackToLobby(String gameID, String p1, String p2);
     }
 }
