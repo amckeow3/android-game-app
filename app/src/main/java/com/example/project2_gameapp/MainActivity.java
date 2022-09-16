@@ -45,7 +45,9 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
         if (user == null) {
             goToLogin();
         } else {
-            goToChatrooms();
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.rootView, new GameLobbyFragment(), "game-lobby-fragment")
+                    .commit();
         }
     }
 
