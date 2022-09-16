@@ -91,6 +91,7 @@ public class GameRoomFragment extends Fragment {
     String turn;
     //boolean atStart = true;
     //TODO: add docRefs here to reduce code reuse
+    DocumentReference turnDocRef, cardDocRef, gameDocRef;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -108,6 +109,14 @@ public class GameRoomFragment extends Fragment {
         adapter = new GameRoomRecyclerViewAdapter(playerHand);
         cardHandRecyclerView.setAdapter(adapter);
 
+        gameDocRef = db.collection("games").document(gameInstance.gameID);
+
+        turnDocRef = db.collection("games").document(gameInstance.gameID)
+                .collection("turn").document("current");
+
+        cardDocRef = db.collection("games").document(gameInstance.gameID)
+                .collection("topCard").document("current");
+
         /*DocumentReference docRef = db.collection("games").document(gameInstance.gameID)
                 .collection("topCard").document();
         topCardDocRefID = docRef.getId();
@@ -123,32 +132,7 @@ public class GameRoomFragment extends Fragment {
             atStart = false;
         }*/
 
-        //discard pile query + snapshot listener
-        DocumentReference cardDocRef = db.collection("games").document(gameInstance.gameID)
-                .collection("topCard").document("current");
-        cardDocRef.set(gameInstance.topCard).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        Log.d("qq", "Initial top card set");
-                        currentCard = gameInstance.topCard;
-                    }
-                });
-
-        cardDocRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
-            @Override
-            public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
-                if(value != null) {
-                    Card topCard = value.toObject(Card.class);
-                    currentCard = topCard;
-                    binding.currentCardValue.setText(topCard.getValue());
-                    binding.currentCardImage.setColorFilter(Color.parseColor(topCard.getColor()));
-                }
-            }
-        });
-        //discard pile query + snapshot listener end
-
-        DocumentReference turnDocRef = db.collection("games").document(gameInstance.gameID)
-                .collection("turn").document("current");
+        //DocumentReference turnDocRef = db.collection("games").document(gameInstance.gameID).collection("turn").document("current");
 
         HashMap<String, String> data = new HashMap<>();
         data.put("currentTurn", gameInstance.currentTurn);
@@ -180,8 +164,31 @@ public class GameRoomFragment extends Fragment {
             }
         });
 
+        //discard pile query + snapshot listener
+        //DocumentReference cardDocRef = db.collection("games").document(gameInstance.gameID).collection("topCard").document("current");
+        cardDocRef.set(gameInstance.topCard).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        Log.d("qq", "Initial top card set");
+                        currentCard = gameInstance.topCard;
+                    }
+                });
+
+        cardDocRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
+                if(value != null) {
+                    Card topCard = value.toObject(Card.class);
+                    currentCard = topCard;
+                    binding.currentCardValue.setText(topCard.getValue());
+                    binding.currentCardImage.setColorFilter(Color.parseColor(topCard.getColor()));
+                }
+            }
+        });
+        //discard pile query + snapshot listener end
+
         //game document snapshot listener
-        DocumentReference gameDocRef = db.collection("games").document(gameInstance.gameID);
+        //DocumentReference gameDocRef = db.collection("games").document(gameInstance.gameID);
         gameDocRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
@@ -209,34 +216,30 @@ public class GameRoomFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 if(turn.equals(mAuth.getCurrentUser().getUid())){
-                    //TODO: make it so you can't draw cards if it's not your turn
-                } else {
+                    Card newCard = new Card();
+                    Log.d("qq", "newcard value" + newCard.value);
 
-                }
-                Card newCard = new Card();
-                Log.d("qq", "newcard value" + newCard.value);
+                    if(newCard.getValue().equals(currentCard.value) || newCard.getColor().equals(currentCard.color)) {
+                        playCard(newCard);
+                    } else {
+                        String collectionName = "hand-" + mAuth.getCurrentUser().getUid();
+                        DocumentReference documentReference = db.collection("games").document(gameInstance.gameID)
+                                .collection(collectionName).document();
+                        newCard.setCardID(documentReference.getId());
 
-                if(newCard.getValue().equals(currentCard.value) || newCard.getColor().equals(currentCard.color)) {
-                    playCard(newCard);
-                } else {
-                    String collectionName = "hand-" + mAuth.getCurrentUser().getUid();
-                    DocumentReference documentReference = db.collection("games").document(gameInstance.gameID)
-                            .collection(collectionName).document();
-                    newCard.setCardID(documentReference.getId());
-
-                    documentReference.set(newCard).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                Toast.makeText(getActivity(), "drew card" + newCard.value + newCard.color, Toast.LENGTH_SHORT).show();
-                                switchTurn();
+                        documentReference.set(newCard).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    Toast.makeText(getActivity(), "drew card" + newCard.value + newCard.color, Toast.LENGTH_SHORT).show();
+                                    switchTurn();
+                                }
                             }
-                        }
-                    });//TODO: add functionality for special cards
-
-                    switchTurn();
+                        });//TODO: add functionality for special cards
+                    }
+                } else {
+                    Toast.makeText(getActivity(), "Waiting for other player to finish turn", Toast.LENGTH_SHORT).show();
                 }
-
 
                 /*if(newCard.getValue().equals(currentCard.value) || newCard.getColor().equals(currentCard.color)) {
                     playCard(newCard);
@@ -288,15 +291,64 @@ public class GameRoomFragment extends Fragment {
                 }
             }
         });*/
-        DocumentReference cardDocRef = db.collection("games").document(gameInstance.gameID)
-                .collection("topCard").document("current");
+        //DocumentReference cardDocRef = db.collection("games").document(gameInstance.gameID)
+                //.collection("topCard").document("current");
+
+        if(newTopCard.getValue().equals("Draw 4")) {
+            String[] colorSet = {"Red", "Green", "Yellow", "Blue"};
+
+            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+            b.setTitle("Please choose a color")
+                    .setItems(colorSet, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            switch (i){
+                                case 0:
+                                    Log.d("qq", "chose red");
+                                    newTopCard.setColor("Red");
+                                    break;
+                                case 1:
+                                    Log.d("qq", "chose green");
+                                    newTopCard.setColor("Green");
+                                    break;
+                                case 2:
+                                    Log.d("qq", "chose yellow");
+                                    newTopCard.setColor("Yellow");
+                                    break;
+                                case 3:
+                                    Log.d("qq", "chose blue");
+                                    newTopCard.setColor("Blue");
+                                    break;
+                            }
+                        }
+                    });
+            b.create().show();
+
+        }
 
         cardDocRef.set(newTopCard).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 Log.d("qq", "new top card successfully set in playcard");
+                String toastText = "Played" + newTopCard.getColor() + newTopCard.getValue();
+                Toast.makeText(getActivity(), toastText, Toast.LENGTH_SHORT).show();
+                if(newTopCard.getValue().equals("Draw 4")) {
+                    if()
+                    String collectionName = "hand-" + player;
+                    for(int i = 0; i < 4; i++) {
+
+                    }
+                } else if(newTopCard.getValue().equals("Skip")) {
+                    switchTurn();
+                    switchTurn();
+                } else {
+                    switchTurn();
+                }
+
             }
         });
+
+
     }
     //TODO: add functionality for draw four
     public void playDrawFour() {
@@ -357,8 +409,8 @@ public class GameRoomFragment extends Fragment {
                     }
                 });*/
 
-        DocumentReference turnDocRef = db.collection("games").document(gameInstance.gameID)
-                .collection("turn").document("current");
+        //DocumentReference turnDocRef = db.collection("games").document(gameInstance.gameID)
+        //        .collection("turn").document("current");
 
         turnDocRef.update("currentTurn", newTurn).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
@@ -418,6 +470,7 @@ public class GameRoomFragment extends Fragment {
                         adapter.notifyDataSetChanged();
 
                         if(playerHand.size() == 0) {
+                            //TODO: turn off snapshot listeners when/before gameFinished=true? so other docs don't update and screw up
                             db.collection("games").document(gameInstance.gameID)
                                     .update("gameFinished", true).addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
@@ -468,7 +521,6 @@ public class GameRoomFragment extends Fragment {
                 holder.cardID = card.getCardID();
                 holder.cardValue.setText(cardArrayList.get(position).getValue());
                 holder.cardImage.setColorFilter(Color.parseColor(cardArrayList.get(position).getColor()));
-
             }
         }
 
@@ -481,6 +533,7 @@ public class GameRoomFragment extends Fragment {
             ImageView cardImage;
             TextView cardValue;
             String cardID;
+            boolean isTurn;
 
             public GameRoomViewHolder(@NonNull View itemView) {
                 super(itemView);
@@ -491,39 +544,44 @@ public class GameRoomFragment extends Fragment {
                     @Override
                     public void onClick(View view) {
                         if(turn.equals(mAuth.getCurrentUser().getUid())){
-                            //TODO: make it so you can't click/play cards from hand if it's not your turn
-                        } else {
+                            String path = "hand-" + mAuth.getCurrentUser().getUid();
+                            DocumentReference documentReference = db.collection("games").document(gameInstance.gameID)
+                                    .collection(path).document(cardID);
+                            //Log.d("qq",  "id(cardID) is " + cardID);
 
-                        }
-                        String path = "hand-" + mAuth.getCurrentUser().getUid();
-                        DocumentReference documentReference = db.collection("games").document(gameInstance.gameID)
-                                .collection(path).document(cardID);
+                            documentReference.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                    if (task.isSuccessful()) {
+                                        Card playedCard = task.getResult().toObject(Card.class);
+                                        if(playedCard.getValue().equals(currentCard.getValue()) ||
+                                                playedCard.getColor().equals(currentCard.getColor()) ||
+                                                playedCard.getValue().equals("Draw 4")) {
 
-                        Log.d("qq",  "id(cardID) is " + cardID);
-                        documentReference.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    Card playedCard = task.getResult().toObject(Card.class);
-                                    String toastText = "Played" + playedCard.getColor() + playedCard.getValue();
-                                    Toast.makeText(getActivity(), toastText, Toast.LENGTH_SHORT).show();
-                                    playCard(playedCard);
+                                            playCard(playedCard);
 
-                                    documentReference.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                        @Override
-                                        public void onSuccess(Void unused) {
-                                            Log.d("qq", "card " + cardID + " deleted");
-                                            switchTurn();
+                                            documentReference.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void unused) {
+                                                    Log.d("qq", "card " + cardID + " deleted");
+                                                }
+                                            }).addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+
+                                                }
+                                            });
+                                        } else {
+                                            Toast.makeText(getActivity(), "Card does not match top card, please choose another", Toast.LENGTH_SHORT).show();
                                         }
-                                    }).addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
 
-                                        }
-                                    });
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        } else {
+                            Toast.makeText(getActivity(), "Waiting for other player to finish turn", Toast.LENGTH_SHORT).show();
+                        }
+
 
                     }
                 });
