@@ -1,22 +1,32 @@
 package com.example.project2_gameapp;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class MainActivity extends AppCompatActivity implements LoginFragment.LoginFragmentListener, RegistrationFragment.RegistrationFragmentListener, ChatroomsFragment.ChatroomsFragmentListener,
-        CreateChatroomFragment.CreateChatroomFragmentListener, ViewChatroomFragment.ViewChatroomFragmentListener, NavigationView.OnNavigationItemSelectedListener, NewGameFragment.NewGameFragmentListener, GameLobbyFragment.GameLobbyFragmentListener {
+        CreateChatroomFragment.CreateChatroomFragmentListener, ViewChatroomFragment.ViewChatroomFragmentListener, NavigationView.OnNavigationItemSelectedListener, NewGameFragment.NewGameFragmentListener,
+        GameLobbyFragment.GameLobbyFragmentListener, GameRoomFragment.GameRoomFragmentListener {
 
     private static final String TAG = "main activity";
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private DrawerLayout drawerLayout;
     private Toolbar toolbar;
     private NavigationView navigationView;
@@ -145,5 +155,29 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
                 .replace(R.id.rootView, GameRoomFragment.newInstance(game), "new-game-fragment")
                 .addToBackStack(null)
                 .commit();
+    }
+
+    @Override
+    public void goBackToLobby(String gameID, String winner) {
+        Log.d("qq", "goBackToLobby: " + winner);
+        AlertDialog.Builder b = new AlertDialog.Builder(this);
+        b.setTitle("Game Over")
+                .setMessage(winner + " Wins!")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        getSupportFragmentManager().popBackStack();
+
+                        db.collection("games").document(gameID)
+                                .delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        Log.d(TAG, "closed win window");
+                                        Log.d(TAG, "delete stuff here instead??");
+                                    }
+                                });
+                    }
+                });
+        b.create().show();
     }
 }

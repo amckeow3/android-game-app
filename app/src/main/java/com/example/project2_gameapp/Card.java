@@ -10,7 +10,7 @@ public class Card {
     public Card() {
         //generate card of random value and color
         Random random = new Random();
-        int cardValue = random.nextInt(11);
+        int cardValue = random.nextInt(12);
         String[] colorSet = {"Red", "Green", "Yellow", "Blue"};
 
         if(cardValue <= 9) {

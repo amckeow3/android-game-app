@@ -1,5 +1,6 @@
 package com.example.project2_gameapp;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -32,6 +33,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -42,7 +44,7 @@ import java.util.HashMap;
 
 public class GameRoomFragment extends Fragment {
     FragmentGameRoomBinding binding;
-    //GameRoomFragmentListener mListener;
+    GameRoomFragmentListener mListener;
     private FirebaseAuth mAuth = FirebaseAuth.getInstance();
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -82,16 +84,15 @@ public class GameRoomFragment extends Fragment {
         return binding.getRoot();
     }
 
-    String player1ID, player2ID, topCardDocRefID;
+    String winnerID, winnerName;
     ArrayList<Card> playerHand;
     RecyclerView cardHandRecyclerView;
     LinearLayoutManager linearLayoutManager;
     GameRoomRecyclerViewAdapter adapter;
     Card currentCard;
     String turn;
-    //boolean atStart = true;
-    //TODO: add docRefs here to reduce code reuse
     DocumentReference turnDocRef, cardDocRef, gameDocRef;
+    ListenerRegistration turnListener, cardListener, gameListener, handListener;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -117,23 +118,6 @@ public class GameRoomFragment extends Fragment {
         cardDocRef = db.collection("games").document(gameInstance.gameID)
                 .collection("topCard").document("current");
 
-        /*DocumentReference docRef = db.collection("games").document(gameInstance.gameID)
-                .collection("topCard").document();
-        topCardDocRefID = docRef.getId();
-
-        if(atStart) {
-            docRef.set(gameInstance.topCard).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    Log.d("qq", "Top card set");
-                    currentCard = gameInstance.topCard;
-                }
-            });
-            atStart = false;
-        }*/
-
-        //DocumentReference turnDocRef = db.collection("games").document(gameInstance.gameID).collection("turn").document("current");
-
         HashMap<String, String> data = new HashMap<>();
         data.put("currentTurn", gameInstance.currentTurn);
         turnDocRef.set(data).addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -143,7 +127,7 @@ public class GameRoomFragment extends Fragment {
             }
         });
 
-        turnDocRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+        turnListener = turnDocRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
                 if(value != null){
@@ -165,16 +149,26 @@ public class GameRoomFragment extends Fragment {
         });
 
         //discard pile query + snapshot listener
-        //DocumentReference cardDocRef = db.collection("games").document(gameInstance.gameID).collection("topCard").document("current");
-        cardDocRef.set(gameInstance.topCard).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        Log.d("qq", "Initial top card set");
-                        currentCard = gameInstance.topCard;
-                    }
-                });
+        if(!gameInstance.topCard.value.equals("Draw 4")) {
+            cardDocRef.set(gameInstance.topCard).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    Log.d("qq", "Initial top card set");
+                    currentCard = gameInstance.topCard;
+                }
+            });
+        } else {
+            cardDocRef.set(new Card("5", "Blue", "")).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    Log.d("qq", "Initial was draw 4, top card set to blue 5");
+                    currentCard = gameInstance.topCard;
+                }
+            });
+        }
 
-        cardDocRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+
+        cardListener = cardDocRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
                 if(value != null) {
@@ -188,24 +182,20 @@ public class GameRoomFragment extends Fragment {
         //discard pile query + snapshot listener end
 
         //game document snapshot listener
-        //DocumentReference gameDocRef = db.collection("games").document(gameInstance.gameID);
-        gameDocRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+        gameListener = gameDocRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
                 //TODO: add win condition, delete stuff once game ends, then mListener.goBackToLobby
                 Log.d("qq", "gameFinished value: " + value.getBoolean("gameFinished"));
                 if(value.getBoolean("gameFinished")) {
                     Log.d("qq", "game finished, deleting game here");
-                    db.collection("users").document(mAuth.getCurrentUser().getUid())
-                            .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                @Override
-                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                    if (task.isSuccessful()) {
-                                        User user = task.getResult().toObject(User.class);
-                                        binding.textViewTurn.setText(user.getFirstName() + " Wins!");
-                                    }
-                                }
-                            });
+                    gameListener.remove();
+                    //gameEnd("hand-" + gameInstance.player1);
+                    //gameEnd("hand-" + gameInstance.player2);
+                    //gameEnd("turn");
+                    //gameEnd("topCard");
+
+                    mListener.goBackToLobby(gameInstance.gameID, winnerName);
                 }
             }
         });
@@ -217,7 +207,6 @@ public class GameRoomFragment extends Fragment {
             public void onClick(View view) {
                 if(turn.equals(mAuth.getCurrentUser().getUid())){
                     Card newCard = new Card();
-                    Log.d("qq", "newcard value" + newCard.value);
 
                     if(newCard.getValue().equals(currentCard.value) || newCard.getColor().equals(currentCard.color)) {
                         playCard(newCard);
@@ -231,32 +220,16 @@ public class GameRoomFragment extends Fragment {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if (task.isSuccessful()) {
-                                    Toast.makeText(getActivity(), "drew card" + newCard.value + newCard.color, Toast.LENGTH_SHORT).show();
+                                    //Toast.makeText(getActivity(), "drew card" + newCard.value + " " + newCard.color, Toast.LENGTH_SHORT).show();
+                                    Log.d("qq", "drew card" + newCard.value + " " + newCard.color);
                                     switchTurn();
                                 }
                             }
-                        });//TODO: add functionality for special cards
+                        });
                     }
                 } else {
                     Toast.makeText(getActivity(), "Waiting for other player to finish turn", Toast.LENGTH_SHORT).show();
                 }
-
-                /*if(newCard.getValue().equals(currentCard.value) || newCard.getColor().equals(currentCard.color)) {
-                    playCard(newCard);
-                } else if (newCard.getValue().equals("Draw 4")) {
-                    //playDrawFour();
-                } else {
-                    if(mAuth.getCurrentUser().getUid().equals(player1ID)) {
-                        player1Hand.add(newCard);
-                        //updatePlayerHand(player1Hand);
-                    } else {
-                        player2Hand.add(newCard);
-                        //updatePlayerHand(player2Hand);
-                    }
-                    adapter.notifyDataSetChanged();
-
-                }*/
-
             }
         });
         //draw button end
@@ -264,36 +237,6 @@ public class GameRoomFragment extends Fragment {
     }
 
     public void playCard(Card newTopCard) {
-        //TODO: remove this, since not needed?
-        /*CollectionReference cRef = db.collection("games").document(gameInstance.gameID)
-                .collection("topCard");
-
-        cRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    for(QueryDocumentSnapshot doc : task.getResult()) {
-                        db.collection("games").document(gameInstance.gameID)
-                                .collection("topCard").document(doc.getId())
-                                .set(newTopCard).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void unused) {
-                                        Log.d("qq", "onSuccess: ");
-                                    }
-                                }).addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Log.d("qq", "onFailure: ");
-                                    }
-                                });
-
-                    }
-                }
-            }
-        });*/
-        //DocumentReference cardDocRef = db.collection("games").document(gameInstance.gameID)
-                //.collection("topCard").document("current");
-
         if(newTopCard.getValue().equals("Draw 4")) {
             String[] colorSet = {"Red", "Green", "Yellow", "Blue"};
 
@@ -304,20 +247,36 @@ public class GameRoomFragment extends Fragment {
                         public void onClick(DialogInterface dialogInterface, int i) {
                             switch (i){
                                 case 0:
-                                    Log.d("qq", "chose red");
-                                    newTopCard.setColor("Red");
+                                    cardDocRef.update("color", "Red").addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            Log.d("qq", "chose red");
+                                        }
+                                    });
                                     break;
                                 case 1:
-                                    Log.d("qq", "chose green");
-                                    newTopCard.setColor("Green");
+                                    cardDocRef.update("color", "Green").addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            Log.d("qq", "chose green");
+                                        }
+                                    });
                                     break;
                                 case 2:
-                                    Log.d("qq", "chose yellow");
-                                    newTopCard.setColor("Yellow");
+                                    cardDocRef.update("color", "Yellow").addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            Log.d("qq", "chose yellow");
+                                        }
+                                    });
                                     break;
                                 case 3:
-                                    Log.d("qq", "chose blue");
-                                    newTopCard.setColor("Blue");
+                                    cardDocRef.update("color", "Blue").addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            Log.d("qq", "chose blue");
+                                        }
+                                    });
                                     break;
                             }
                         }
@@ -330,56 +289,48 @@ public class GameRoomFragment extends Fragment {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 Log.d("qq", "new top card successfully set in playcard");
-                String toastText = "Played" + newTopCard.getColor() + newTopCard.getValue();
-                Toast.makeText(getActivity(), toastText, Toast.LENGTH_SHORT).show();
+                //String toastText = "Played" + newTopCard.getColor() + newTopCard.getValue();
+                //Toast.makeText(getActivity(), toastText, Toast.LENGTH_SHORT).show();
                 if(newTopCard.getValue().equals("Draw 4")) {
-                    if()
+                    String player;
+                    if(turn.equals(gameInstance.player1)) {
+                        player = gameInstance.player2;
+                    } else {
+                        player = gameInstance.player1;
+                    }
+
                     String collectionName = "hand-" + player;
                     for(int i = 0; i < 4; i++) {
+                        DocumentReference documentReference = db.collection("games").document(gameInstance.gameID)
+                                .collection(collectionName).document();
+                        Card newCard = new Card();
+                        newCard.setCardID(documentReference.getId());
 
+                        documentReference.set(newCard).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if(task.isSuccessful()){
+                                    Log.d("qq", "card added to " + player + "'s hand");
+                                } else {
+                                    AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                                    b.setTitle("Error dealing cards")
+                                            .setMessage(task.getException().getMessage())
+                                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialogInterface, int i) {
+
+                                                }
+                                            });
+                                    b.create().show();
+                                }
+                            }
+                        });
                     }
-                } else if(newTopCard.getValue().equals("Skip")) {
-                    switchTurn();
-                    switchTurn();
-                } else {
+                } else if(!newTopCard.getValue().equals("Skip")) {
                     switchTurn();
                 }
-
             }
         });
-
-
-    }
-    //TODO: add functionality for draw four
-    public void playDrawFour() {
-        String[] colorSet = {"Red", "Green", "Yellow", "Blue"};
-
-        AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
-        b.setTitle("Please choose a color")
-                .setItems(colorSet, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        switch (i){
-                            case 0:
-                                Log.d("qq", "chose red");
-                                //playCard(new Card("Draw 4", "Red", ""));
-                                break;
-                            case 1:
-                                Log.d("qq", "chose green");
-                                //playCard(new Card("Draw 4", "Green", ""));
-                                break;
-                            case 2:
-                                Log.d("qq", "chose yellow");
-                                //playCard(new Card("Draw 4", "Yellow", ""));
-                                break;
-                            case 3:
-                                Log.d("qq", "chose blue");
-                                //playCard(new Card("Draw 4", "Blue", ""));
-                                break;
-                        }
-                    }
-                });
-        b.create().show();
     }
 
     public void switchTurn(){
@@ -390,33 +341,11 @@ public class GameRoomFragment extends Fragment {
             newTurn = gameInstance.player1;
         }
 
-        /*db.collection("users").document(newTurn)
-                .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            User user = task.getResult().toObject(User.class);
-                            binding.textViewTurn.setText(user.getFirstName() + "'s Turn");
-                        }
-                    }
-                });
-
-        db.collection("games").document(gameInstance.gameID)
-                .update("currentTurn", newTurn).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        Log.d("qq", "new turn value: " + newTurn);
-                    }
-                });*/
-
-        //DocumentReference turnDocRef = db.collection("games").document(gameInstance.gameID)
-        //        .collection("turn").document("current");
-
         turnDocRef.update("currentTurn", newTurn).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    Log.d("qq", "new turn successfully updated in switchturn");
+                    Log.d("qq", "new turn successfully updated in switchTurn");
                 }
             }
         });
@@ -434,7 +363,7 @@ public class GameRoomFragment extends Fragment {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if(task.isSuccessful()){
-                        //Log.d("qq", "added card: " + newCard.value + " " + newCard.color + " to " + player + "'s hand");
+                        Log.d("qq", "added card: " + newCard.value + " " + newCard.color + " to " + player + "'s hand");
                     } else {
                         AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                         b.setTitle("Error dealing cards")
@@ -454,7 +383,7 @@ public class GameRoomFragment extends Fragment {
 
     public void getPlayerHands() {
         String path = "hand-" + mAuth.getCurrentUser().getUid();
-        db.collection("games").document(gameInstance.getGameID())
+        handListener = db.collection("games").document(gameInstance.getGameID())
                 .collection(path)
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
@@ -466,38 +395,37 @@ public class GameRoomFragment extends Fragment {
                             Card c = doc.toObject(Card.class);
                             playerHand.add(c);
                         }
-                        Log.d("qq", "size of hand is: " + playerHand.size());
                         adapter.notifyDataSetChanged();
 
                         if(playerHand.size() == 0) {
-                            //TODO: turn off snapshot listeners when/before gameFinished=true? so other docs don't update and screw up
-                            db.collection("games").document(gameInstance.gameID)
-                                    .update("gameFinished", true).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            Log.d("qq", "set gameFinished to true");
-                                        }
-                                    });
+                            Log.d("qq", "turn value is: " + turn);
+                            winnerID = turn;
+                            Log.d("qq", "winnerID value is: " + winnerID);
+                            db.collection("users").document(winnerID)
+                                    .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                    if (task.isSuccessful()) {
+                                        User winner = task.getResult().toObject(User.class);
+                                        winnerName = winner.getFirstName();
+                                        Log.d("qq", "removing listeners");
+                                        handListener.remove();
+                                        cardListener.remove();
+                                        turnListener.remove();
+                                        db.collection("games").document(gameInstance.gameID)
+                                                .update("gameFinished", true).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                        Log.d("qq", "set gameFinished to true");
+                                                        mListener.goBackToLobby(gameInstance.gameID, winnerName);
+                                                    }
+                                                });
+                                    }
+                                }
+                            });
                         }
                     }
                 });
-
-        /*db.collection("games").document(gameInstance.getGameID())
-                .collection(gameInstance.getPlayer2())
-                .addSnapshotListener(new EventListener<QuerySnapshot>() {
-                    @Override
-                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                        player2Hand.clear();
-                        Log.d("qq", "snapshot listener for p2 called, updating hand");
-
-                        for(QueryDocumentSnapshot doc : value) {
-                            Card c = doc.toObject(Card.class);
-                            player2Hand.add(c);
-                        }
-
-                        adapter.notifyDataSetChanged();
-                    }
-                });*/
     }
 
     class GameRoomRecyclerViewAdapter extends RecyclerView.Adapter<GameRoomRecyclerViewAdapter.GameRoomViewHolder> {
@@ -533,7 +461,6 @@ public class GameRoomFragment extends Fragment {
             ImageView cardImage;
             TextView cardValue;
             String cardID;
-            boolean isTurn;
 
             public GameRoomViewHolder(@NonNull View itemView) {
                 super(itemView);
@@ -547,7 +474,6 @@ public class GameRoomFragment extends Fragment {
                             String path = "hand-" + mAuth.getCurrentUser().getUid();
                             DocumentReference documentReference = db.collection("games").document(gameInstance.gameID)
                                     .collection(path).document(cardID);
-                            //Log.d("qq",  "id(cardID) is " + cardID);
 
                             documentReference.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                 @Override
@@ -589,13 +515,35 @@ public class GameRoomFragment extends Fragment {
         }
     }
 
-    /*@Override
+    public void gameEnd(String collectionName){
+        Log.d("qq", "gameEnd, deleting: " + collectionName);
+        CollectionReference cRef = db.collection("games").document(gameInstance.gameID)
+                .collection(collectionName);
+
+        cRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    for(QueryDocumentSnapshot doc : task.getResult()) {
+                        cRef.document(doc.getId()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                Log.d("qq", "gameEnd, document deleted in " + collectionName);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         mListener = (GameRoomFragmentListener) context;
     }
 
     interface GameRoomFragmentListener {
-        void goBackToLobby();
-    }*/
+        void goBackToLobby(String gameID, String winner);
+    }
 }
