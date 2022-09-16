@@ -18,7 +18,13 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements LoginFragment.LoginFragmentListener, RegistrationFragment.RegistrationFragmentListener, ChatroomsFragment.ChatroomsFragmentListener,
         CreateChatroomFragment.CreateChatroomFragmentListener, ViewChatroomFragment.ViewChatroomFragmentListener, NavigationView.OnNavigationItemSelectedListener, NewGameFragment.NewGameFragmentListener,
@@ -160,24 +166,51 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
     @Override
     public void goBackToLobby(String gameID, String winner) {
         Log.d("qq", "goBackToLobby: " + winner);
-        AlertDialog.Builder b = new AlertDialog.Builder(this);
-        b.setTitle("Game Over")
-                .setMessage(winner + " Wins!")
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        getSupportFragmentManager().popBackStack();
+        getSupportFragmentManager().popBackStack();
 
-                        db.collection("games").document(gameID)
-                                .delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        Log.d(TAG, "closed win window");
-                                        Log.d(TAG, "delete stuff here instead??");
-                                    }
-                                });
+                db.collection("games").document(gameID)
+                .collection("gameStatus").document("current").get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            String winName = task.getResult().getString("winner");
+                            AlertDialog.Builder b = new AlertDialog.Builder(MainActivity.this);
+                            b.setTitle("Game Over")
+                                    .setMessage(winName + " Wins!")
+                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            clearGame(gameID);
+                                        }
+                                    });
+                            b.create().show();
+                        }
                     }
                 });
-        b.create().show();
+
+    }
+
+    private void clearGame(String gameID){
+        DocumentReference gameRef = db.collection("games").document(gameID);
+        gameRef.collection("gameStatus").document("current").delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Log.d(TAG, "gameStatus deleted");
+            }
+        });
+
+        gameRef.collection("topCard").document("current").delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Log.d(TAG, "topCard deleted");
+            }
+        });
+
+        gameRef.collection("turn").document("current").delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Log.d(TAG, "topCard deleted");
+            }
+        });
     }
 }

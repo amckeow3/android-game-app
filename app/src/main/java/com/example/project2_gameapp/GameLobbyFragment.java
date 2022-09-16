@@ -140,7 +140,12 @@ public class GameLobbyFragment extends Fragment {
                 newGame.put("gameID", docRef.getId());
                 newGame.put("player1", user.getUid());
                 newGame.put("player2", "");
-                newGame.put("topCard", new Card());
+                Card topCard = new Card();
+                if(topCard.getValue().equals("Draw 4")){
+                    newGame.put("topCard", new Card("5", "Blue", ""));
+                } else {
+                    newGame.put("topCard", new Card());
+                }
                 newGame.put("currentTurn", user.getUid());
                 newGame.put("moves", new HashMap<String, Object>());
                 newGame.put("gameFinished", false);
