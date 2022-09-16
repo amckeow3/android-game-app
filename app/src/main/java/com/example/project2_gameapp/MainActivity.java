@@ -27,8 +27,12 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements LoginFragment.LoginFragmentListener, RegistrationFragment.RegistrationFragmentListener, ChatroomsFragment.ChatroomsFragmentListener,
+<<<<<<< HEAD
+        CreateChatroomFragment.CreateChatroomFragmentListener, ViewChatroomFragment.ViewChatroomFragmentListener, NavigationView.OnNavigationItemSelectedListener, GameLobbyFragment.GameLobbyFragmentListener {
+=======
         CreateChatroomFragment.CreateChatroomFragmentListener, ViewChatroomFragment.ViewChatroomFragmentListener, NavigationView.OnNavigationItemSelectedListener, NewGameFragment.NewGameFragmentListener,
         GameLobbyFragment.GameLobbyFragmentListener, GameRoomFragment.GameRoomFragmentListener {
+>>>>>>> 0243d59bc9fc45eea6deba7ab329b6f0009b140f
 
     private static final String TAG = "main activity";
     private FirebaseAuth mAuth;
@@ -145,14 +149,6 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.Log
     @Override
     public void leaveChatroom() {
         getSupportFragmentManager().popBackStack();
-    }
-
-    @Override
-    public void selectUserForGame(User user) {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.rootView, NewGameFragment.newInstance(user), "new-game-fragment")
-                .addToBackStack(null)
-                .commit();
     }
 
     @Override

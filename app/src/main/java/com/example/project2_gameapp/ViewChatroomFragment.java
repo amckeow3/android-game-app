@@ -477,9 +477,6 @@ public class ViewChatroomFragment extends Fragment {
                 } else {
                     holder.profile.setImageResource(R.drawable.ic_person);
                 }
-
-
-
             }
         }
 
@@ -499,15 +496,6 @@ public class ViewChatroomFragment extends Fragment {
                 mBinding = binding;
                 name = mBinding.textViewerName;
                 profile = mBinding.imageViewAcctProfilePic;
-
-                itemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        User selectedUser = mViewer;
-                        Log.d(TAG, "onClick: Selected User " + selectedUser);
-                        mListener.selectUserForGame(selectedUser);
-                    }
-                });
             }
 
             public void setupUI(User viewer) {
@@ -540,6 +528,5 @@ public class ViewChatroomFragment extends Fragment {
 
     public interface ViewChatroomFragmentListener {
         void leaveChatroom();
-        void selectUserForGame(User user);
     }
 }
