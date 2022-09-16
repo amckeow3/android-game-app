@@ -89,7 +89,7 @@ public class GameRoomFragment extends Fragment {
     GameRoomRecyclerViewAdapter adapter;
     Card currentCard;
     String turn;
-    boolean atStart = true;
+    //boolean atStart = true;
     //TODO: add docRefs here to reduce code reuse
 
     @Override
@@ -185,6 +185,7 @@ public class GameRoomFragment extends Fragment {
         gameDocRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
+                //TODO: add win condition, delete stuff once game ends, then mListener.goBackToLobby
                 Log.d("qq", "gameFinished value: " + value.getBoolean("gameFinished"));
                 if(value.getBoolean("gameFinished")) {
                     Log.d("qq", "game finished, deleting game here");
@@ -207,6 +208,11 @@ public class GameRoomFragment extends Fragment {
         binding.drawCardButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(turn.equals(mAuth.getCurrentUser().getUid())){
+                    //TODO: make it so you can't draw cards if it's not your turn
+                } else {
+
+                }
                 Card newCard = new Card();
                 Log.d("qq", "newcard value" + newCard.value);
 
@@ -226,7 +232,7 @@ public class GameRoomFragment extends Fragment {
                                 switchTurn();
                             }
                         }
-                    });
+                    });//TODO: add functionality for special cards
 
                     switchTurn();
                 }
@@ -251,6 +257,7 @@ public class GameRoomFragment extends Fragment {
             }
         });
         //draw button end
+        //TODO: add leave button functionality????
     }
 
     public void playCard(Card newTopCard) {
@@ -291,7 +298,7 @@ public class GameRoomFragment extends Fragment {
             }
         });
     }
-
+    //TODO: add functionality for draw four
     public void playDrawFour() {
         String[] colorSet = {"Red", "Green", "Yellow", "Blue"};
 
@@ -356,7 +363,9 @@ public class GameRoomFragment extends Fragment {
         turnDocRef.update("currentTurn", newTurn).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-
+                if (task.isSuccessful()) {
+                    Log.d("qq", "new turn successfully updated in switchturn");
+                }
             }
         });
     }
@@ -459,6 +468,7 @@ public class GameRoomFragment extends Fragment {
                 holder.cardID = card.getCardID();
                 holder.cardValue.setText(cardArrayList.get(position).getValue());
                 holder.cardImage.setColorFilter(Color.parseColor(cardArrayList.get(position).getColor()));
+
             }
         }
 
@@ -480,6 +490,11 @@ public class GameRoomFragment extends Fragment {
                 itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        if(turn.equals(mAuth.getCurrentUser().getUid())){
+                            //TODO: make it so you can't click/play cards from hand if it's not your turn
+                        } else {
+
+                        }
                         String path = "hand-" + mAuth.getCurrentUser().getUid();
                         DocumentReference documentReference = db.collection("games").document(gameInstance.gameID)
                                 .collection(path).document(cardID);
@@ -523,6 +538,6 @@ public class GameRoomFragment extends Fragment {
     }
 
     interface GameRoomFragmentListener {
-
+        void goBackToLobby();
     }*/
 }
