@@ -100,7 +100,6 @@ public class GameRoomFragment extends Fragment {
         setupUI();
         binding.textViewGameTitle.setText(gameInstance.getGameTitle());
 
-
         playerHand = new ArrayList<>();
         getPlayerHands();
         dealCards(mAuth.getCurrentUser().getUid());
@@ -110,7 +109,9 @@ public class GameRoomFragment extends Fragment {
         cardHandRecyclerView.setLayoutManager(linearLayoutManager);
         adapter = new GameRoomRecyclerViewAdapter(playerHand);
         cardHandRecyclerView.setAdapter(adapter);
+        
 
+        //Set document references for queries
         gameStatusDocRef = db.collection("games").document(gameInstance.gameID)
                 .collection("gameStatus").document("current");
 
@@ -120,6 +121,7 @@ public class GameRoomFragment extends Fragment {
         cardDocRef = db.collection("games").document(gameInstance.gameID)
                 .collection("topCard").document("current");
 
+        //game turn set
         HashMap<String, String> data = new HashMap<>();
         data.put("currentTurn", gameInstance.currentTurn);
         turnDocRef.set(data).addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -129,6 +131,7 @@ public class GameRoomFragment extends Fragment {
             }
         });
 
+        //game turn snapshot listener
         turnListener = turnDocRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
@@ -152,7 +155,7 @@ public class GameRoomFragment extends Fragment {
             }
         });
 
-        //discard pile query + snapshot listener
+        //discard pile set
         cardDocRef.set(gameInstance.topCard).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
@@ -162,7 +165,7 @@ public class GameRoomFragment extends Fragment {
         });
 
 
-
+        //discard pile top card snapshot listener
         cardListener = cardDocRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
@@ -177,7 +180,8 @@ public class GameRoomFragment extends Fragment {
                 }
             }
         });
-        //discard pile query + snapshot listener end
+
+        //game status set
         HashMap<String, Object> gameStatus = new HashMap<>();
         gameStatus.put("gameFinished", gameInstance.gameFinished);
         gameStatus.put("winner", "");
@@ -202,7 +206,6 @@ public class GameRoomFragment extends Fragment {
                 }
             }
         });
-        //game document snapshot listener end
 
         //draw button
         binding.drawCardButton.setOnClickListener(new View.OnClickListener() {
@@ -223,7 +226,7 @@ public class GameRoomFragment extends Fragment {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if (task.isSuccessful()) {
-                                    //Toast.makeText(getActivity(), "drew card" + newCard.value + " " + newCard.color, Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getActivity(), "drew card" + newCard.value + " " + newCard.color, Toast.LENGTH_SHORT).show();
                                     Log.d("qq", "drew card" + newCard.value + " " + newCard.color);
                                     switchTurn();
                                 }
@@ -235,8 +238,6 @@ public class GameRoomFragment extends Fragment {
                 }
             }
         });
-        //draw button end
-        //TODO: add leave button functionality????
     }
 
     public void playCard(Card newTopCard) {
@@ -292,8 +293,8 @@ public class GameRoomFragment extends Fragment {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 //Log.d("qq", "new top card successfully set in playcard");
-                //String toastText = "Played" + newTopCard.getColor() + newTopCard.getValue();
-                //Toast.makeText(getActivity(), toastText, Toast.LENGTH_SHORT).show();
+                String toastText = "Played" + newTopCard.getColor() + newTopCard.getValue();
+                Toast.makeText(getActivity(), toastText, Toast.LENGTH_SHORT).show();
                 if(newTopCard.getValue().equals("Draw 4")) {
                     String player;
                     if(turn.equals(gameInstance.player1)) {
@@ -518,28 +519,6 @@ public class GameRoomFragment extends Fragment {
                 });
             }
         }
-    }
-
-    public void gameEnd(String collectionName){
-        Log.d("qq", "gameEnd, deleting: " + collectionName);
-        CollectionReference cRef = db.collection("games").document(gameInstance.gameID)
-                .collection(collectionName);
-
-        cRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    for(QueryDocumentSnapshot doc : task.getResult()) {
-                        cRef.document(doc.getId()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                Log.d("qq", "gameEnd, document deleted in " + collectionName);
-                            }
-                        });
-                    }
-                }
-            }
-        });
     }
 
     @Override
